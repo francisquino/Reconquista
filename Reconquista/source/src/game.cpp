@@ -16,7 +16,15 @@ namespace {
     const int MAX_FRAME_TIME = 1000 / FPS;
 }
 
+bool isMouseBox = false;
 sf::VertexArray mouseBox(sf::LinesStrip, 5);
+sf::VertexArray playerBox(sf::LinesStrip, 5);
+//Posicion ratón
+sf::Vector2i starting_position, current_position;
+sf::Vector2f startingPositionWorldPos, currentPositionWorldPos;
+
+
+
 
 Game::Game() {
     this->gameLoop();
@@ -29,9 +37,6 @@ void Game::gameLoop() {
     Graphics graphics;
     Input input;
     sf::Event event;
-
-    //Posicion ratón
-    sf::Vector2i starting_position, current_position;
 
     this->_level = Level("MapReconquista1", graphics);
     this->_player = Player(graphics, this->_level.getPlayerSpawnPoint());
@@ -75,6 +80,7 @@ void Game::gameLoop() {
             	starting_position = sf::Mouse::getPosition(graphics.getWindow());
                 //starting_position.x = event.mouseButton.x;
                 //starting_position.y = event.mouseButton.y;
+            	if (isMouseBox) isMouseBox = false;
             }
 
             if( event.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left) )
@@ -83,8 +89,8 @@ void Game::gameLoop() {
             	//printf ("Coords Antes %i, %i, %i, %i\n", starting_position.x, starting_position.y, current_position.x, current_position.y);
 
             	//Map Pixel to Coords:
-            	sf::Vector2f startingPositionWorldPos = graphics.getWindow().mapPixelToCoords(starting_position);
-            	sf::Vector2f currentPositionWorldPos = graphics.getWindow().mapPixelToCoords(current_position);
+            	startingPositionWorldPos = graphics.getWindow().mapPixelToCoords(starting_position);
+            	currentPositionWorldPos = graphics.getWindow().mapPixelToCoords(current_position);
             	//printf ("Coords Despues %f, %f, %f, %f\n", startingPositionWorldPos.x, startingPositionWorldPos.y, currentPositionWorldPos.x, currentPositionWorldPos.y);
 
 				mouseBox[0].position = startingPositionWorldPos;
@@ -97,6 +103,8 @@ void Game::gameLoop() {
 				mouseBox[3].color = sf::Color::Red;
 				mouseBox[4].position = startingPositionWorldPos;
 				mouseBox[4].color = sf::Color::Red;
+
+            	isMouseBox = true;
             }
             else if (event.type == sf::Event::Closed) {
                 return;
@@ -211,6 +219,7 @@ void Game::draw(Graphics& graphics) {
     this->_player.draw(graphics);
     //Dibujar caja click & drag raton
     graphics.getWindow().draw(mouseBox);
+    graphics.getWindow().draw(playerBox);
 
 
     //Posicion de player
@@ -259,6 +268,31 @@ void Game::update(float elapsedTime) {
     this->_player.update(elapsedTime);
 	this->_level.update(elapsedTime, this->_player);
     //this->_hud.update(elapsedTime, this->_player);
+
+	//Comprobar que objetos estan dentro de la mouseBox
+	std::vector<Player> objetosSeleccionados;
+
+	if (isMouseBox) {
+		printf("Player %i, %i, %i, %i\n", this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop(), this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getBottom());
+		printf ("Coords Antes %i, %i, %i, %i\n", starting_position.x, starting_position.y, current_position.x, current_position.y);
+		printf ("Coords Despues %f, %f, %f, %f\n", startingPositionWorldPos.x, startingPositionWorldPos.y, currentPositionWorldPos.x, currentPositionWorldPos.y);
+
+		if (this->_player.checkColisionObjetos(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
+				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
+
+			//this->_player.handleSeleccion();
+			playerBox[0].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop());
+			playerBox[0].color = sf::Color::Green;
+			playerBox[1].position = sf::Vector2f(this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getTop());
+			playerBox[1].color = sf::Color::Green;
+			playerBox[2].position = sf::Vector2f(this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getBottom());
+			playerBox[2].color = sf::Color::Green;
+			playerBox[3].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getBottom());
+			playerBox[3].color = sf::Color::Green;
+			playerBox[4].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop());
+			playerBox[4].color = sf::Color::Green;
+		}
+	}
 
 
     /*

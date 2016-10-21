@@ -207,6 +207,15 @@ void Player::gainHealth(int amount) {
 }
 */
 
+bool Player::checkColisionObjetos(const Rectangle &other) {
+    if (this->getBoundingBox().collidesWith(other)) {
+        return true;
+    }
+    else return false;
+}
+
+
+
 void Player::update(float elapsedTime) {
     //Apply gravity
 	/*

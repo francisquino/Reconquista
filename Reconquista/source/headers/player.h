@@ -64,6 +64,11 @@ public:
     void handleDoorCollisions(std::vector<Door> &others, Level &level, Graphics &graphics);
     void handleEnemyCollisions(std::vector<Enemy*> &others);
 
+
+    //Hay que definir Objeto y chequear colision con cualquier objeto (enemigos, construcciones, ...)
+    bool checkColisionObjetos(const Rectangle &other);
+
+
     const float getX() const;
     const float getY() const;
 
