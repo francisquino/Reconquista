@@ -1,0 +1,15 @@
+Boton derecho raton: centrar ventana en ese punto
+
+Al pasar el cursor por encima de una unidad cambia a Lupa. Si pulsamos btn izq sobre unidad:
+Unidad aparece rodeada por caja verde.
+Se abre la ventana de información y opciones de la unidad:
+
+	Peasant:
+		Energía
+		
+		Mover -> Cambia cursor para fijar destino o salir. Si fijamos destino, empieza a moverse.
+		Parar -> Si se esta moviendo para.
+		Reparar
+		Obtener recursos en bosque o mina de oro
+		Reparar
+		
