@@ -17,11 +17,12 @@ namespace {
 }
 
 bool isMouseBox = false;
+bool playerSelected = false;
 sf::VertexArray mouseBox(sf::LinesStrip, 5);
 sf::VertexArray playerBox(sf::LinesStrip, 5);
 //Posicion ratón
-sf::Vector2i starting_position, current_position;
-sf::Vector2f startingPositionWorldPos, currentPositionWorldPos;
+sf::Vector2i starting_position, current_position, posicion_destino;
+sf::Vector2f startingPositionWorldPos, currentPositionWorldPos, posicionDestinoWorldPos;
 
 
 
@@ -80,7 +81,16 @@ void Game::gameLoop() {
             	starting_position = sf::Mouse::getPosition(graphics.getWindow());
                 //starting_position.x = event.mouseButton.x;
                 //starting_position.y = event.mouseButton.y;
-            	if (isMouseBox) isMouseBox = false;
+            	if (isMouseBox) {
+            		isMouseBox = false;
+            		playerSelected = false;
+            	}
+
+            	//Si se ha seleccionado al jugador. Al ulsar con el boton izquierdo, fijamos un destino.
+            	if (playerSelected) {
+            		posicion_destino = sf::Mouse::getPosition(graphics.getWindow());
+            		posicionDestinoWorldPos = graphics.getWindow().mapPixelToCoords(posicion_destino);
+            	}
             }
 
             if( event.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left) )
@@ -281,6 +291,7 @@ void Game::update(float elapsedTime) {
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
 
 			//this->_player.handleSeleccion();
+			playerSelected = true;
 			playerBox[0].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop());
 			playerBox[0].color = sf::Color::Green;
 			playerBox[1].position = sf::Vector2f(this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getTop());
