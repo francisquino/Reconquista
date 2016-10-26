@@ -26,6 +26,16 @@ public:
      */
     void moveRight();
 
+    /* void moveDown
+     * Moves the player down by dy
+     */
+    void moveDown();
+
+    /* void moveUp
+     * Moves the player up by -dy
+     */
+    void moveUp();
+
     /* void stopMoving
      * Stops moving the player
      */

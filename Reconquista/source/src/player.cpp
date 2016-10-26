@@ -79,8 +79,34 @@ void Player::moveRight() {
     this->_facing = RIGHT;
 }
 
+void Player::moveDown() {
+    if (this->_lookingDown == true && this->_grounded == true) {
+        return;
+    }
+    this->_dy = player_constants::WALK_SPEED;
+    if (this->_lookingUp == false) {
+        //this->playAnimation("RunRight");
+        this->playAnimation("IdleRight");
+    }
+    this->_facing = DOWN;
+
+}
+
+void Player::moveUp() {
+	if (this->_lookingDown == true && this->_grounded == true) {
+		return;
+	}
+	this->_dy = -player_constants::WALK_SPEED;
+	if (this->_lookingUp == false) {
+		//this->playAnimation("RunLeft");
+		this->playAnimation("IdleRight");
+	}
+	this->_facing = UP;
+}
+
 void Player::stopMoving() {
     this->_dx = 0.0f;
+    this->_dy = 0.0f;
     if (this->_lookingUp == false && this->_lookingDown == false) {
         //this->playAnimation(this->_facing == RIGHT? "IdleRight" : "IdleLeft");
     	this->playAnimation("IdleRight");

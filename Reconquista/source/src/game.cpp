@@ -18,11 +18,14 @@ namespace {
 
 bool isMouseBox = false;
 bool playerSelected = false;
+bool destinoFijado = false;
 sf::VertexArray mouseBox(sf::LinesStrip, 5);
 sf::VertexArray playerBox(sf::LinesStrip, 5);
 //Posicion ratón
 sf::Vector2i starting_position, current_position, posicion_destino;
 sf::Vector2f startingPositionWorldPos, currentPositionWorldPos, posicionDestinoWorldPos;
+
+Sprite destinoCruz;
 
 
 
@@ -81,18 +84,22 @@ void Game::gameLoop() {
             	starting_position = sf::Mouse::getPosition(graphics.getWindow());
                 //starting_position.x = event.mouseButton.x;
                 //starting_position.y = event.mouseButton.y;
-            	if (isMouseBox) {
-            		isMouseBox = false;
-            		playerSelected = false;
-            	}
 
-            	//Si se ha seleccionado al jugador. Al ulsar con el boton izquierdo, fijamos un destino.
+            	//Si se ha seleccionado al jugador. Al pulsar con el boton izquierdo, fijamos un destino.
             	if (playerSelected) {
+            		destinoFijado = true;
             		posicion_destino = sf::Mouse::getPosition(graphics.getWindow());
             		posicionDestinoWorldPos = graphics.getWindow().mapPixelToCoords(posicion_destino);
+                	destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, posicionDestinoWorldPos.x, posicionDestinoWorldPos.y);
+            	}
+
+            	if (isMouseBox) {
+            		isMouseBox = false;
+            		//playerSelected = false;
             	}
             }
 
+            //Pulsamos el botón izquierdo mientras desplazamos el ratón
             if( event.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left) )
             {
             	current_position = sf::Mouse::getPosition(graphics.getWindow());
@@ -227,6 +234,12 @@ void Game::draw(Graphics& graphics) {
     graphics.getWindow().setView(*graphics.getMiView());
     this->_level.draw(graphics);
     this->_player.draw(graphics);
+
+    //Si hay destino fijado, dibujar el gráfico
+    if (destinoFijado) {
+    	destinoCruz.draw(graphics, destinoCruz.getX(), destinoCruz.getY());
+    }
+
     //Dibujar caja click & drag raton
     graphics.getWindow().draw(mouseBox);
     graphics.getWindow().draw(playerBox);
@@ -275,6 +288,40 @@ void Game::draw(Graphics& graphics) {
 
 void Game::update(float elapsedTime) {
     //std::cout << elapsedTime << "\n";
+
+	//Mover player a destino.
+	if (playerSelected && destinoFijado) {
+		if(this->_player.getX()<posicionDestinoWorldPos.x) {
+			this->_player.moveRight();
+		    printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
+		    printf ("Destino %f, %f\n", posicionDestinoWorldPos.x, posicionDestinoWorldPos.y);
+		    printf ("Diferencia %f\n", floor(this->_player.getX() - posicionDestinoWorldPos.x));
+		}
+		if(this->_player.getX()>posicionDestinoWorldPos.x) {
+			this->_player.moveLeft();
+		    printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
+		    printf ("Destino %f, %f\n", posicionDestinoWorldPos.x, posicionDestinoWorldPos.y);
+		    printf ("Diferencia %f\n", floor(this->_player.getX() - posicionDestinoWorldPos.x));
+		}
+		if(this->_player.getY()<posicionDestinoWorldPos.y) {
+			this->_player.moveDown();
+		}
+		if(this->_player.getY()>posicionDestinoWorldPos.y) {
+			this->_player.moveUp();
+		}
+
+		//Si hemos llegado al destino, inicializamos
+		if(abs(floor(this->_player.getX() - posicionDestinoWorldPos.x)) < 2.0f &&
+			abs(floor(this->_player.getY() - posicionDestinoWorldPos.y)) < 2.0f) {
+			printf("DESTINO ALCANZADO\n");
+			this->_player.stopMoving();
+			destinoFijado = false;
+			posicion_destino = sf::Vector2i(0,0);
+			posicionDestinoWorldPos = sf::Vector2f(0.f, 0.f);
+		}
+	}
+
+
     this->_player.update(elapsedTime);
 	this->_level.update(elapsedTime, this->_player);
     //this->_hud.update(elapsedTime, this->_player);
@@ -283,9 +330,9 @@ void Game::update(float elapsedTime) {
 	std::vector<Player> objetosSeleccionados;
 
 	if (isMouseBox) {
-		printf("Player %i, %i, %i, %i\n", this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop(), this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getBottom());
-		printf ("Coords Antes %i, %i, %i, %i\n", starting_position.x, starting_position.y, current_position.x, current_position.y);
-		printf ("Coords Despues %f, %f, %f, %f\n", startingPositionWorldPos.x, startingPositionWorldPos.y, currentPositionWorldPos.x, currentPositionWorldPos.y);
+		//printf("Player %i, %i, %i, %i\n", this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop(), this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getBottom());
+		//printf ("Coords Antes %i, %i, %i, %i\n", starting_position.x, starting_position.y, current_position.x, current_position.y);
+		//printf ("Coords Despues %f, %f, %f, %f\n", startingPositionWorldPos.x, startingPositionWorldPos.y, currentPositionWorldPos.x, currentPositionWorldPos.y);
 
 		if (this->_player.checkColisionObjetos(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
