@@ -82,15 +82,24 @@ public:
     const float getX() const;
     const float getY() const;
 
+    void setDestino(const float destinoX, const float destinoY);
+    const float getDestinoX() const { return this->_destinoX; }
+    const float getDestinoY() const { return this->_destinoY; }
+
+    bool destinoAlcanzado() const { return this->_destinoAlcanzado; }
+    void setDestinoAlcanzado(const bool destino);
+
     const inline int getMaxHealth() const { return this->_maxHealth; }
     const inline int getCurrentHealth() { return this->_currentHealth; }
 
     void gainHealth(int amount);
 
 private:
-    float _dx, _dy;
+    float _dx, _dy, _destinoX, _destinoY;
 
     Direction _facing;
+
+    bool _destinoAlcanzado;
 
     bool _grounded;
 

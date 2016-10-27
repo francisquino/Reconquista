@@ -18,12 +18,11 @@ namespace {
 
 bool isMouseBox = false;
 bool playerSelected = false;
-bool destinoFijado = false;
 sf::VertexArray mouseBox(sf::LinesStrip, 5);
 sf::VertexArray playerBox(sf::LinesStrip, 5);
 //Posicion ratón
-sf::Vector2i starting_position, current_position, posicion_destino;
-sf::Vector2f startingPositionWorldPos, currentPositionWorldPos, posicionDestinoWorldPos;
+sf::Vector2i starting_position, current_position;
+sf::Vector2f startingPositionWorldPos, currentPositionWorldPos;
 
 Sprite destinoCruz;
 
@@ -87,10 +86,10 @@ void Game::gameLoop() {
 
             	//Si se ha seleccionado al jugador. Al pulsar con el boton izquierdo, fijamos un destino.
             	if (playerSelected) {
-            		destinoFijado = true;
+            		sf::Vector2i posicion_destino;
             		posicion_destino = sf::Mouse::getPosition(graphics.getWindow());
-            		posicionDestinoWorldPos = graphics.getWindow().mapPixelToCoords(posicion_destino);
-                	destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, posicionDestinoWorldPos.x, posicionDestinoWorldPos.y);
+            		this->_player.setDestino(graphics.getWindow().mapPixelToCoords(posicion_destino).x, graphics.getWindow().mapPixelToCoords(posicion_destino).y);
+                	destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, this->_player.getDestinoX(), this->_player.getDestinoY());
             	}
 
             	if (isMouseBox) {
@@ -236,14 +235,13 @@ void Game::draw(Graphics& graphics) {
     this->_player.draw(graphics);
 
     //Si hay destino fijado, dibujar el gráfico
-    if (destinoFijado) {
+    if (this->_player.getDestinoX() != -1 && this->_player.getDestinoY() != -1) {
     	destinoCruz.draw(graphics, destinoCruz.getX(), destinoCruz.getY());
     }
 
     //Dibujar caja click & drag raton
     graphics.getWindow().draw(mouseBox);
     graphics.getWindow().draw(playerBox);
-
 
     //Posicion de player
     sf::Vector2f position(0, 0);
@@ -288,39 +286,6 @@ void Game::draw(Graphics& graphics) {
 
 void Game::update(float elapsedTime) {
     //std::cout << elapsedTime << "\n";
-
-	//Mover player a destino.
-	if (playerSelected && destinoFijado) {
-		if(this->_player.getX()<posicionDestinoWorldPos.x) {
-			this->_player.moveRight();
-		    printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
-		    printf ("Destino %f, %f\n", posicionDestinoWorldPos.x, posicionDestinoWorldPos.y);
-		    printf ("Diferencia %f\n", floor(this->_player.getX() - posicionDestinoWorldPos.x));
-		}
-		if(this->_player.getX()>posicionDestinoWorldPos.x) {
-			this->_player.moveLeft();
-		    printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
-		    printf ("Destino %f, %f\n", posicionDestinoWorldPos.x, posicionDestinoWorldPos.y);
-		    printf ("Diferencia %f\n", floor(this->_player.getX() - posicionDestinoWorldPos.x));
-		}
-		if(this->_player.getY()<posicionDestinoWorldPos.y) {
-			this->_player.moveDown();
-		}
-		if(this->_player.getY()>posicionDestinoWorldPos.y) {
-			this->_player.moveUp();
-		}
-
-		//Si hemos llegado al destino, inicializamos
-		if(abs(floor(this->_player.getX() - posicionDestinoWorldPos.x)) < 2.0f &&
-			abs(floor(this->_player.getY() - posicionDestinoWorldPos.y)) < 2.0f) {
-			printf("DESTINO ALCANZADO\n");
-			this->_player.stopMoving();
-			destinoFijado = false;
-			posicion_destino = sf::Vector2i(0,0);
-			posicionDestinoWorldPos = sf::Vector2f(0.f, 0.f);
-		}
-	}
-
 
     this->_player.update(elapsedTime);
 	this->_level.update(elapsedTime, this->_player);

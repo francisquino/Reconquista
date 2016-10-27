@@ -17,6 +17,9 @@ Player::Player(Graphics&graphics, sf::Vector2i spawnPoint) :
 	AnimatedSprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint.x, spawnPoint.y, 100),
     _dx(0),
     _dy(0),
+    _destinoX(-1),
+    _destinoY(-1),
+    _destinoAlcanzado(false),
     _facing(RIGHT),
     _grounded(false),
 	_lookingUp(false),
@@ -53,6 +56,15 @@ const float Player::getX() const {
 
 const float Player::getY() const {
     return this->_y;
+}
+
+void Player::setDestino(const float destinoX, const float destinoY) {
+	this->_destinoX = destinoX;
+	this->_destinoY = destinoY;
+}
+
+void Player::setDestinoAlcanzado(const bool destino) {
+	this->_destinoAlcanzado = destino;
 }
 
 void Player::moveLeft() {
@@ -249,6 +261,39 @@ void Player::update(float elapsedTime) {
         this->_dy += player_constants::GRAVITY * elapsedTime;
     }
     */
+
+	//Si hay un destino fijado, movernos hacia él.
+	if (this->getDestinoX() != -1 && this->getDestinoY() != 1) {
+		if(this->getX() < this->getDestinoX()) {
+			this->moveRight();
+		    //printf ("Posicion player %f, %f\n", this->getX(), this->getY());
+		    //printf ("Destino %f, %f\n", this->getDestinoX(), this->getDestinoY());
+		    //printf ("Diferencia %f\n", floor(this->getX() - this->getDestinoX()));
+		}
+		if(this->getX() > this->getDestinoX()) {
+			this->moveLeft();
+/*
+		    printf ("Posicion player %f, %f\n", this->getX(), this->getY());
+		    printf ("Destino %f, %f\n", this->getDestinoX(), this->getDestinoY());
+		    printf ("Diferencia %f\n", floor(this->getX() - this->getDestinoX()));
+*/
+		}
+		if(this->getY() < this->getDestinoY()) {
+			this->moveDown();
+		}
+		if(this->getY() > this->getDestinoY()) {
+			this->moveUp();
+		}
+
+		//Si hemos llegado al destino, inicializamos. Al usar números decimales, damos un margen de 2.0f
+		if(abs(floor(this->getX() - this->getDestinoX())) < 2.0f &&
+			abs(floor(this->getY() - this->getDestinoY())) < 2.0f) {
+			//printf("DESTINO ALCANZADO\n");
+			this->stopMoving();
+			this->setDestinoAlcanzado(true);
+			this->setDestino(-1, -1);
+		}
+	}
 
     //Move by dx
     this->_x += this->_dx * elapsedTime;
