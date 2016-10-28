@@ -8,12 +8,10 @@
 Graphics::Graphics() {
     _window = new sf::RenderWindow(sf::VideoMode(640, 480), "Reconquista", sf::Style::Close);
 
-    //Implementar view
-    _fixed = _window->getView();
+    _vistaCompleta = _window->getView();
     //_view.reset(sf::FloatRect(0, 0, (_window->getSize().x * 0.5), (_window->getSize().y) * 0.5));
-    _view.reset(sf::FloatRect(0, 0, 640, 480));
-    _view.setViewport(sf::FloatRect(0, 0, 1.f, 1.f));
-    //Fin implementar view
+    _vistaJuego.reset(sf::FloatRect(0, 0, 640, 480));
+    _vistaJuego.setViewport(sf::FloatRect(0.25f, 0, 1.f, 1.f));
 }
 
 Graphics::~Graphics() {
@@ -42,3 +40,24 @@ void Graphics::flip() {
 void Graphics::clear() {
     _window->clear();
 }
+
+sf::View* Graphics::getView(const Vista vista) {
+	switch (vista) {
+		case Completa:
+			return &_vistaCompleta;
+			break;
+		case Juego:
+			return &_vistaJuego;
+			break;
+		case Minimapa:
+			return &_vistaMinimapa;
+			break;
+		case Info:
+			return &_vistaInfo;
+			break;
+		default:
+			break;
+	}
+}
+
+

@@ -476,10 +476,12 @@ void Level::draw(Graphics &graphics) {
 //    }
 
     //Implementar view
-    //Calcular el rectangulo del view
-    sf::FloatRect screenRect(sf::Vector2f(graphics.getMiView()->getCenter().x - (graphics.getMiView()->getSize().x)/2,
-                                        graphics.getMiView()->getCenter().y - (graphics.getMiView()->getSize().y)/2) ,
-                                        graphics.getMiView()->getSize());
+    //Calcular el rectangulo de la vista Juego. Le aumentamos el tamaño de un tile en todos los bordes para evitar
+	//que al dibujar no aparezcan dentro de la vista tiles que si lo están y se produzcan espacios vacios.
+    sf::FloatRect screenRect(sf::Vector2f((graphics.getView(Juego)->getCenter().x - (graphics.getView(Juego)->getSize().x)/2) - this->_tileList.at(0).getSize().x,
+                                        (graphics.getView(Juego)->getCenter().y - (graphics.getView(Juego)->getSize().y)/2) - this->_tileList.at(0).getSize().y) ,
+    						sf::Vector2f(graphics.getView(Juego)->getSize().x + this->_tileList.at(0).getSize().x,
+    									graphics.getView(Juego)->getSize().y + this->_tileList.at(0).getSize().y));
 
     for (int i=0; i<this->_tileList.size(); i++) {
         //Implementar view

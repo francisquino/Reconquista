@@ -15,6 +15,14 @@
 #include <string>
 #include <SFML/Graphics.hpp>
 
+enum Vista {
+	Completa,
+	Juego,
+	Minimapa,
+	Info
+};
+
+
 class Graphics {
 public:
     Graphics();
@@ -50,18 +58,15 @@ public:
      */
     sf::RenderWindow& getWindow() { return *_window; }
 
-    //Implementar view
-    sf::View* getMiView() { return &_view; }
-    sf::View* getFixed() { return &_fixed; }
-    //Fin implementar view
-
+    sf::View* getView(const Vista vista);
 
 private:
     sf::RenderWindow* _window;
-    //Implementar view
-    sf::View _fixed;
-    sf::View _view;
-    //Fin implementar view
+
+    sf::View _vistaCompleta;
+    sf::View _vistaJuego;
+    sf::View _vistaMinimapa;
+    sf::View _vistaInfo;
 
     std::map<std::string, sf::Texture*> _spriteSheets;
 };

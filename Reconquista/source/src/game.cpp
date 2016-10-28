@@ -228,9 +228,8 @@ void Game::gameLoop() {
 void Game::draw(Graphics& graphics) {
     graphics.clear();
 
-    //Implementar view
-    //Dibujar level y player en _view
-    graphics.getWindow().setView(*graphics.getMiView());
+    //Dibujar level y player en _vistaJuego
+    graphics.getWindow().setView(*graphics.getView(Juego));
     this->_level.draw(graphics);
     this->_player.draw(graphics);
 
@@ -248,9 +247,9 @@ void Game::draw(Graphics& graphics) {
     position.x = this->_player.getX();
     position.y = this->_player.getY();
 
-    //Obtener el punto medio de _view
-    float viewMitadX = graphics.getMiView()->getSize().x * 0.5;
-    float viewMitadY = graphics.getMiView()->getSize().y * 0.5;
+    //Obtener el punto medio de _vistaJuego
+    float viewMitadX = graphics.getView(Juego)->getSize().x * 0.5;
+    float viewMitadY = graphics.getView(Juego)->getSize().y * 0.5;
 
     //Obtener tamaño del mapa
     int sizeMapaX = this->_level.getMapSize().x * this->_level.getTileSize().x * globals::SPRITE_SCALE;
@@ -272,12 +271,11 @@ void Game::draw(Graphics& graphics) {
     //printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
     //printf ("Posicion %f, %f\n", position.x, position.y);
     //printf ("viewMitadX %f Extremo %f\n", viewMitadX, sizeMapaX);
-    graphics.getMiView()->setCenter(position.x, position.y);
-    //Fin implementar view
+    graphics.getView(Juego)->setCenter(position.x, position.y);
 
 
     //Implementar view
-    //graphics.getWindow().setView(*graphics.getFixed());
+    //graphics.getWindow().setView(*graphics.getView("Completa"));
     //this->_hud.draw(graphics);
     //Fin implementar view
 
