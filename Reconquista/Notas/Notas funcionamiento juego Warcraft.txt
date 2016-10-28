@@ -13,3 +13,6 @@ Se abre la ventana de información y opciones de la unidad:
 		Obtener recursos en bosque o mina de oro
 		Reparar
 		
+Peasant. Cuando recolecta madera u oro lo almacena en el Ayuntamiento. Luego vuelve al recurso.
+		
+El Ayuntamiento permite crear una unidad básica o carretera.

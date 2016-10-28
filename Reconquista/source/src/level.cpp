@@ -3,7 +3,8 @@
 #include "globals.h"
 #include "utils.h"
 #include "player.h"
-//#include "enemy.h"
+#include "enemy.h"
+//#include "ayuntamiento.h"
 
 #include "tinyxml2.h"
 
@@ -371,6 +372,10 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                             this->_spawnPoint = sf::Vector2i(std::ceil(x) * globals::SPRITE_SCALE,
                                     std::ceil(y) * globals::SPRITE_SCALE);
                         }
+                        if(ss.str() == "ayuntamiento") {
+                            this->_ayuntamiento = Ayuntamiento(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+                                    std::floor(y) * globals::SPRITE_SCALE));
+                        }
 
                         pObject = pObject->NextSiblingElement("object");
                     }
@@ -490,6 +495,10 @@ void Level::draw(Graphics &graphics) {
             printf ("Tile fuera de view\n");
         }*/
     }
+
+    //Dibujar ayuntamiento
+	this->_ayuntamiento.draw(graphics);
+
     /*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
         this->_animatedTileList.at(i).draw(graphics);
@@ -497,6 +506,7 @@ void Level::draw(Graphics &graphics) {
     for (int i=0; i<this->_enemies.size(); i++) {
         this->_enemies.at(i)->draw(graphics);
     }*/
+
 }
 
 std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other) {

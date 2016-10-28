@@ -13,8 +13,10 @@
 #include "slope.h"
 #include "animatedtile.h"
 #include "door.h"
+#include "objeto.h"
 
 class Graphics;
+//class Ayuntamiento;
 class Enemy;
 class Player;
 struct Tileset;
@@ -53,6 +55,8 @@ private:
 
     std::vector<AnimatedTile> _animatedTileList;
     std::vector<AnimatedTileInfo> _animatedTileInfos;
+
+    Ayuntamiento _ayuntamiento;
 
     std::vector<Door> _doorList;
 
