@@ -475,7 +475,6 @@ void Level::draw(Graphics &graphics) {
 //        }
 //    }
 
-    //Implementar view
     //Calcular el rectangulo de la vista Juego. Le aumentamos el tamaño de un tile en todos los bordes para evitar
 	//que al dibujar no aparezcan dentro de la vista tiles que si lo están y se produzcan espacios vacios.
     sf::FloatRect screenRect(sf::Vector2f((graphics.getView(Juego)->getCenter().x - (graphics.getView(Juego)->getSize().x)/2) - this->_tileList.at(0).getSize().x,
@@ -484,21 +483,29 @@ void Level::draw(Graphics &graphics) {
     									graphics.getView(Juego)->getSize().y + this->_tileList.at(0).getSize().y));
 
     for (int i=0; i<this->_tileList.size(); i++) {
-        //Implementar view
         //Obtenemos la caja del tile
         sf::FloatRect tileBounds(sf::Vector2f(this->_tileList.at(i).getPosition().x, this->_tileList.at(i).getPosition().y),
                                     sf::Vector2f(this->_tileList.at(i).getSize().x, this->_tileList.at(i).getSize().y));
-        //Si el tile está dentro del rectangulo de View lo dibujamos
+        //Si el tile está dentro del rectangulo de la vista Juego lo dibujamos
         if(screenRect.intersects(tileBounds))
+            graphics.getWindow().setView(*graphics.getView(Juego));  //Establecer la vista Juego
             this->_tileList.at(i).draw(graphics);
         /*else {
             printf("screenRect %f, %f, %f, %f\n", screenRect.left, screenRect.top, screenRect.left+screenRect.width, screenRect.top+screenRect.height);
             printf("getBounds %f, %f, %f, %f\n", tileBounds.left, tileBounds.top,tileBounds.left+tileBounds.width, tileBounds.top+tileBounds.height);
             printf ("Tile fuera de view\n");
         }*/
+
+        //Dibujamos vista Minimapa
+        graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
+        this->_tileList.at(i).draw(graphics);
     }
 
     //Dibujar ayuntamiento
+    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+	this->_ayuntamiento.draw(graphics);
+    //Dibujamos ayuntamiento en vista Minimapa
+    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
 	this->_ayuntamiento.draw(graphics);
 
     /*
