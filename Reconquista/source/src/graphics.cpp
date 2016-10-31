@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "globals.h"
 
 
 /* Graphics class
@@ -7,11 +8,21 @@
 
 Graphics::Graphics() {
     _window = new sf::RenderWindow(sf::VideoMode(640, 480), "Reconquista", sf::Style::Close);
+    _window->setMouseCursorVisible(false); // Ocultar cursor
 
+    //Preparar cursor para el ratón
+    _spriteCursorPuntero = Sprite(*this, "content/sprites/Cursores.png", 16, 0, 16, 16, 0, 0);
+    _spriteCursorLupa =  Sprite(*this, "content/sprites/Cursores.png", 0, 0, 16, 16, 0, 0);
+
+    //Definir las vistas
     _vistaCompleta = _window->getView();
-    //_view.reset(sf::FloatRect(0, 0, (_window->getSize().x * 0.5), (_window->getSize().y) * 0.5));
+
+    //_vistaJuego.reset(sf::FloatRect(0, 0, (_window->getSize().x * 0.5), (_window->getSize().y) * 0.5));
     _vistaJuego.reset(sf::FloatRect(0, 0, 640, 480));
     _vistaJuego.setViewport(sf::FloatRect(0.25f, 0, 1.f, 1.f));
+
+    _vistaMinimapa.reset(sf::FloatRect(0, 0, 50*16*globals::SPRITE_SCALE, 50*16*globals::SPRITE_SCALE)); //(0, 0, 50 tiles x 16 x factor escalado, 50 tiles x 16 x factor escalado)
+    _vistaMinimapa.setViewport(sf::FloatRect(0, 0, 0.25f, 0.25f));
 }
 
 Graphics::~Graphics() {
@@ -56,8 +67,10 @@ sf::View* Graphics::getView(const Vista vista) {
 			return &_vistaInfo;
 			break;
 		default:
+			return NULL;
 			break;
 	}
 }
+
 
 

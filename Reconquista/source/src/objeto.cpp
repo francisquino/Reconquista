@@ -6,6 +6,7 @@
  */
 
 #include "objeto.h"
+#include "graphics.h"
 
 //Clase base objeto
 Objeto::Objeto() {}
@@ -27,6 +28,15 @@ void Objeto::draw(Graphics &graphics) {
     AnimatedSprite::draw(graphics, this->_x, this->_y);
 }
 
+bool Objeto::checkColision(const Rectangle &other) {
+    if (this->getBoundingBox().collidesWith(other)) {
+        return true;
+    }
+    else return false;
+}
+
+
+
 //Clase Ayuntamiento
 Ayuntamiento::Ayuntamiento() {}
 
@@ -37,7 +47,8 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
 		_unidades(),
 		_recursos()
  {
-    this->setupAnimations();
+	graphics.loadImage("content/sprites/Ayuntamientos.png");
+	this->setupAnimations();
     this->playAnimation("AyuntamientoInicial");
  }
 

@@ -15,6 +15,8 @@
 #include <string>
 #include <SFML/Graphics.hpp>
 
+#include "sprite.h"
+
 enum Vista {
 	Completa,
 	Juego,
@@ -60,8 +62,13 @@ public:
 
     sf::View* getView(const Vista vista);
 
+    Sprite getCursorPuntero() { return _spriteCursorPuntero; }
+    Sprite getCursorLupa() { return _spriteCursorLupa; }
+
 private:
     sf::RenderWindow* _window;
+
+    Sprite _spriteCursorPuntero, _spriteCursorLupa;
 
     sf::View _vistaCompleta;
     sf::View _vistaJuego;

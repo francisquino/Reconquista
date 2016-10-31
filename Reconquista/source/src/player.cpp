@@ -305,5 +305,9 @@ void Player::update(float elapsedTime) {
 }
 
 void Player::draw(Graphics &graphics) {
+    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+    AnimatedSprite::draw(graphics, this->_x, this->_y);
+    //Dibujamos en vista Minimapa
+    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
     AnimatedSprite::draw(graphics, this->_x, this->_y);
 }

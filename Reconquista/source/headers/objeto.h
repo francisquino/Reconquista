@@ -25,6 +25,8 @@ public:
     virtual void update(int elapsedTime);
     virtual void draw(Graphics &graphics);
 
+    bool checkColision(const Rectangle &other);
+
     const inline int getMaxHealth() const { return this->_maxHealth; }
     const inline int getCurrentHealth() const { return this->_currentHealth; }
 

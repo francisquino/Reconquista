@@ -1,4 +1,5 @@
 #include "input.h"
+#include "globals.h"
 
 /* Input class
  * Keeps track of keyboard state
@@ -68,3 +69,34 @@ bool Input::isMouseButtonHeld(sf::Mouse::Button boton) {
     return this->_heldMouseButtons[boton];
 }
 
+//Comprobar si coordenadas estan dentro de vista Minimapa
+bool Input::dentroVistaMinimapa(const sf::Vector2i coord) {
+	if (coord.x >= globals::vistaMinimapaX1 && coord.x <= globals::vistaMinimapaX2 &&
+		coord.y >= globals::vistaMinimapaY1 && coord.y <= globals::vistaMinimapaY2)
+		return true;
+	else return false;
+}
+
+//Comprobar si coordenadas estan dentro de vista Info
+bool Input::dentroVistaInfo(const sf::Vector2i coord) {
+	if (coord.x >= globals::vistaInfoX1 && coord.x <= globals::vistaInfoX2 &&
+		coord.y >= globals::vistaInfoY1 && coord.y <= globals::vistaInfoY2)
+		return true;
+	else return false;
+}
+
+//Comprobar si coordenadas estan dentro de vista Juego
+bool Input::dentroVistaJuego(const sf::Vector2i coord) {
+	if (coord.x >= globals::vistaJuegoX1 && coord.x <= globals::vistaJuegoX2 &&
+		coord.y >= globals::vistaJuegoY1 && coord.y <= globals::vistaJuegoY2)
+		return true;
+	else return false;
+}
+
+//Devuelve true si las coordenadas están sobre un objeto
+bool Input::sobreObjeto(const sf::Vector2i coord, const Objeto* objeto) {
+	if (coord.x >= objeto->getBoundingBox().getLeft() && coord.x <= objeto->getBoundingBox().getRight() &&
+		coord.y >= objeto->getBoundingBox().getBottom() && coord.y <= objeto->getBoundingBox().getTop())
+		return true;
+	else return false;
+}

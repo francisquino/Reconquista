@@ -39,6 +39,8 @@ public:
     const sf::Vector2i getMapSize() const { return this->_size; }
     const sf::Vector2i getTileSize() const { return this->_tileSize; }
 
+    Ayuntamiento _ayuntamiento;
+
 private:
     std::string _mapName;
     sf::Vector2i _spawnPoint;
@@ -55,8 +57,6 @@ private:
 
     std::vector<AnimatedTile> _animatedTileList;
     std::vector<AnimatedTileInfo> _animatedTileInfos;
-
-    Ayuntamiento _ayuntamiento;
 
     std::vector<Door> _doorList;
 

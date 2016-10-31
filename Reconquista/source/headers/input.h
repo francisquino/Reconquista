@@ -3,6 +3,7 @@
 
 #include <SFML/Window.hpp>
 #include <map>
+#include <objeto.h>
 
 class Input {
 public:
@@ -21,6 +22,12 @@ public:
     bool wasMouseButtonPressed(sf::Mouse::Button boton);
     bool wasMouseButtonReleased(sf::Mouse::Button boton);
     bool isMouseButtonHeld(sf::Mouse::Button boton);
+
+    bool dentroVistaMinimapa(const sf::Vector2i coord);
+    bool dentroVistaInfo(const sf::Vector2i coord);
+    bool dentroVistaJuego(const sf::Vector2i coord);
+
+    bool sobreObjeto(const sf::Vector2i coord, const Objeto* objeto);
 
 private:
     std::map<sf::Keyboard::Key, bool> _heldKeys;
