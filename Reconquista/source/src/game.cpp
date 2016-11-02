@@ -5,7 +5,7 @@
 
 #include "game.h"
 #include "graphics.h"
-#include "input.h"    //Lectura de eventos -> pulsacion de
+#include "input.h"    //Lectura de eventos
 #include "objeto.h"
 
 /* Game class
@@ -19,6 +19,8 @@ namespace {
 
 bool isMouseBox = false;
 bool playerSelected = false;
+bool _aytoSeleccionado = false;
+
 sf::VertexArray mouseBox(sf::LinesStrip, 5);
 sf::VertexArray playerBox(sf::LinesStrip, 5);
 sf::VertexArray ayuntamientoBox(sf::LinesStrip, 5);
@@ -51,6 +53,7 @@ void Game::gameLoop() {
 
     this->_level = Level("MapReconquista1", graphics);
     this->_player = Player(graphics, this->_level.getPlayerSpawnPoint());
+    this->_info = InfoUser(graphics);
 
     //this->_hud = HUD(graphics, this->_player);
 
@@ -86,8 +89,8 @@ void Game::gameLoop() {
             if (event.type == sf::Event::MouseMoved) {
             	graphics.getWindow().setView(*graphics.getView(Juego));
             	//Si el ratón está sobre un objeto, cambiar el cursor por una lupa
-				if (input.sobreObjeto(graphics, (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
-            							&this->_level._ayuntamiento)) {
+				if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+										this->_level._ayuntamiento.getBoundingBox())) {
             		_tipoCursor = lupa;
 
             	}
@@ -101,9 +104,32 @@ void Game::gameLoop() {
                 // = event.mouseButton.x;
                 //starting_position.y = event.mouseButton.y;
 
-            	//Si se ha seleccionado al jugador. Al pulsar con el boton izquierdo, fijamos un destino.
             	//Ver si el cursor está dentro de la vista Juego
             	if (input.dentroVistaJuego(starting_position)) {
+            		//Si el cursor es Lupa (estamos sobre un objeto)
+            		if (_tipoCursor == lupa){
+            			graphics.getWindow().setView(*graphics.getView(Juego));
+            			//Estamos sobre Ayuntamiento
+            			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+                    							this->_level._ayuntamiento.getBoundingBox())) {
+            				//Mostrar en vista Info los datos del Ayuntamiento y Acciones
+            				ayuntamientoBox[0].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getTop());
+            				ayuntamientoBox[0].color = sf::Color::Red;
+            				ayuntamientoBox[1].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getRight(), this->_level._ayuntamiento.getBoundingBox().getTop());
+            				ayuntamientoBox[1].color = sf::Color::Red;
+            				ayuntamientoBox[2].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getRight(), this->_level._ayuntamiento.getBoundingBox().getBottom());
+            				ayuntamientoBox[2].color = sf::Color::Red;
+            				ayuntamientoBox[3].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getBottom());
+            				ayuntamientoBox[3].color = sf::Color::Red;
+            				ayuntamientoBox[4].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getTop());
+            				ayuntamientoBox[4].color = sf::Color::Red;
+
+            				_aytoSeleccionado = true;
+            			}
+
+            		}
+
+                	//Si se ha seleccionado al jugador. Al pulsar con el boton izquierdo, fijamos un destino.
 					if (playerSelected) {
 						sf::Vector2i posicion_destino;
 						graphics.getWindow().setView(*graphics.getView(Juego));
@@ -123,7 +149,22 @@ void Game::gameLoop() {
             		printf ("Minimapa\n");
             	}
             	else if (input.dentroVistaInfo(starting_position)) {
-            		printf ("Info\n");
+					graphics.getWindow().setView(*graphics.getView(Info));
+            		//Si el ayuntamiento está seleccionado:
+            		if (_aytoSeleccionado) {
+                		//Pulsamos sobre la acción "Entrenar Campesino"
+            			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+								this->_info.getIconoEntrenarCampesino()->getBoundingBox())) {
+            				printf("Entrenar Campesino\n");
+
+            				//Comprobar que cumnplimos con requisitos (recursos)
+            				//Si se puede, lanzar CrearCampesino para este Ayto.
+            				//Borrar iconos acciones de ayto.
+            				//Dibujar la barra de progreso de creación
+            			}
+
+            		}
+
             	}
             }
 
@@ -258,6 +299,11 @@ void Game::gameLoop() {
 void Game::draw(Graphics& graphics) {
     graphics.clear();
 
+    //Si hemos seleccionado el ayuntamiento, dibujar su estado y las acciones en la vista Info
+    if (_aytoSeleccionado) {
+    	this->_info.drawAyto(graphics);
+    }
+
     this->_level.draw(graphics);
     graphics.getWindow().setView(*graphics.getView(Juego));
     this->_player.draw(graphics);
@@ -274,28 +320,25 @@ void Game::draw(Graphics& graphics) {
     graphics.getWindow().draw(playerBox);
     graphics.getWindow().draw(ayuntamientoBox);
 
-    //Posicion de player
+
+    //Centrar vista Juego según la posición de Player
+    //Obtener posicion de player
     sf::Vector2f position(0, 0);
     position.x = this->_player.getX();
     position.y = this->_player.getY();
-
     //Obtener el punto medio de _vistaJuego
     float viewMitadX = graphics.getView(Juego)->getSize().x * 0.5;
     float viewMitadY = graphics.getView(Juego)->getSize().y * 0.5;
-
     //Obtener tamaño del mapa
     int sizeMapaX = this->_level.getMapSize().x * this->_level.getTileSize().x * globals::SPRITE_SCALE;
     int sizeMapaY = this->_level.getMapSize().y * this->_level.getTileSize().y * globals::SPRITE_SCALE;
-
     //Comparamos la posicion de player con el mapa,
     //tomando como extremos los bordes del mapa menos la mitad de la vista,
     //para luego centrar la vista.
     if (position.x < viewMitadX) position.x = viewMitadX;
     else if (position.x > sizeMapaX - viewMitadX) position.x = sizeMapaX - viewMitadX;
-
     if (position.y < viewMitadY) position.y = viewMitadY;
     else if (position.y > sizeMapaY - viewMitadY) position.y = sizeMapaY - viewMitadY;
-
     //printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
     //printf ("Posicion %f, %f\n", position.x, position.y);
     //printf ("viewMitadX %f Extremo %f\n", viewMitadX, sizeMapaX);
@@ -320,7 +363,7 @@ void Game::update(float elapsedTime) {
 
     this->_player.update(elapsedTime);
 	this->_level.update(elapsedTime, this->_player);
-    //this->_hud.update(elapsedTime, this->_player);
+    this->_info.update(elapsedTime);
 
 	//Comprobar que objetos estan dentro de la mouseBox
 	std::vector<Player> objetosSeleccionados;
@@ -350,18 +393,8 @@ void Game::update(float elapsedTime) {
 
 	if (isMouseBox && this->_level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
-		ayuntamientoBox[0].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getTop());
-		ayuntamientoBox[0].color = sf::Color::Green;
-		ayuntamientoBox[1].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getRight(), this->_level._ayuntamiento.getBoundingBox().getTop());
-		ayuntamientoBox[1].color = sf::Color::Green;
-		ayuntamientoBox[2].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getRight(), this->_level._ayuntamiento.getBoundingBox().getBottom());
-		ayuntamientoBox[2].color = sf::Color::Green;
-		ayuntamientoBox[3].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getBottom());
-		ayuntamientoBox[3].color = sf::Color::Green;
-		ayuntamientoBox[4].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getTop());
-		ayuntamientoBox[4].color = sf::Color::Green;
 
-		printf("Dibujar iconos de acciones del ayuntamiento en vista Info\n");
+		//printf("Dibujar iconos de acciones del ayuntamiento en vista Info\n");
 	}
 
 

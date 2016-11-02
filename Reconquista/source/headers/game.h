@@ -13,7 +13,7 @@
 
 #include "player.h"
 #include "level.h"
-//#include "hud.h"
+#include "infouser.h"
 #include "graphics.h"
 
 class Game {
@@ -31,7 +31,7 @@ private:
 
     Level _level;
 
-    //HUD _hud;
+    InfoUser _info;
 
     Graphics _graphics;
 };

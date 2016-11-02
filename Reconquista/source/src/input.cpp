@@ -94,28 +94,9 @@ bool Input::dentroVistaJuego(const sf::Vector2i coord) {
 }
 
 //Devuelve true si las coordenadas están sobre un objeto
-bool Input::sobreObjeto(Graphics& graphics, const sf::Vector2i coord, Objeto* objeto) {
-	printf ("Coords cursor: %i, %i\n", coord.x, coord.y);
-	printf ("Coords objeto: %i, %i, %i, %i\n", objeto->getBoundingBox().getLeft(), objeto->getBoundingBox().getTop(),
-			objeto->getBoundingBox().getRight(), objeto->getBoundingBox().getBottom());
-
-	sf::VertexArray aytBox(sf::LinesStrip, 5);
-	graphics.getWindow().setView(*graphics.getView(Juego));
-	aytBox[0].position = sf::Vector2f(objeto->getBoundingBox().getLeft(), objeto->getBoundingBox().getTop());
-	aytBox[0].color = sf::Color::Yellow;
-	aytBox[1].position = sf::Vector2f(objeto->getBoundingBox().getRight(), objeto->getBoundingBox().getTop());
-	aytBox[1].color = sf::Color::Yellow;
-	aytBox[2].position = sf::Vector2f(objeto->getBoundingBox().getRight(), objeto->getBoundingBox().getBottom());
-	aytBox[2].color = sf::Color::Yellow;
-	aytBox[3].position = sf::Vector2f(objeto->getBoundingBox().getLeft(), objeto->getBoundingBox().getBottom());;
-	aytBox[3].color = sf::Color::Yellow;
-	aytBox[4].position = sf::Vector2f(objeto->getBoundingBox().getLeft(), objeto->getBoundingBox().getTop());
-	aytBox[4].color = sf::Color::Yellow;
-    graphics.getWindow().draw(aytBox);
-
-
-	if (coord.x >= objeto->getBoundingBox().getLeft() && coord.x <= objeto->getBoundingBox().getRight() &&
-		coord.y >= objeto->getBoundingBox().getTop() && coord.y <= objeto->getBoundingBox().getBottom())
+bool Input::sobre(const sf::Vector2i coord, Rectangle boundingBox) {
+	if (coord.x >= boundingBox.getLeft() && coord.x <= boundingBox.getRight() &&
+		coord.y >= boundingBox.getTop() && coord.y <= boundingBox.getBottom())
 		return true;
 	else return false;
 }

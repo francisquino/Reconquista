@@ -12,7 +12,7 @@ Graphics::Graphics() {
 
     //Preparar cursor para el ratón
     _spriteCursorPuntero = Sprite(*this, "content/sprites/Cursores.png", 16, 0, 16, 16, 0, 0);
-    _spriteCursorLupa =  Sprite(*this, "content/sprites/Cursores.png", 0, 0, 16, 16, 0, 0);
+    _spriteCursorLupa = Sprite(*this, "content/sprites/Cursores.png", 0, 0, 16, 16, 0, 0);
 
     //Definir las vistas
     _vistaCompleta = _window->getView();
@@ -23,6 +23,9 @@ Graphics::Graphics() {
 
     _vistaMinimapa.reset(sf::FloatRect(0, 0, 50*16*globals::SPRITE_SCALE, 50*16*globals::SPRITE_SCALE)); //(0, 0, 50 tiles x 16 x factor escalado, 50 tiles x 16 x factor escalado)
     _vistaMinimapa.setViewport(sf::FloatRect(0, 0, 0.25f, 0.25f));
+
+    _vistaInfo.reset(sf::FloatRect(0, 0, 120*globals::SPRITE_SCALE, 340*globals::SPRITE_SCALE));
+    _vistaInfo.setViewport(sf::FloatRect(0, 0.25f, 0.25f, 1.f));
 }
 
 Graphics::~Graphics() {

@@ -29,7 +29,7 @@ public:
     bool dentroVistaInfo(const sf::Vector2i coord);
     bool dentroVistaJuego(const sf::Vector2i coord);
 
-    bool sobreObjeto(Graphics& graphics, const sf::Vector2i coord, Objeto* cajaObjeto);
+    bool sobre(const sf::Vector2i coord, Rectangle boundingBox);
 
 private:
     std::map<sf::Keyboard::Key, bool> _heldKeys;
