@@ -61,6 +61,7 @@ void Game::gameLoop() {
     while(true) {
         input.beginNewFrame();
 
+        graphics.getWindow().setView(*graphics.getView(Completa));
         // Manejamos los eventos
         //while (graphics.getWindow().pollEvent(event))
         if (graphics.getWindow().pollEvent(event))
@@ -83,14 +84,18 @@ void Game::gameLoop() {
             }*/
             //Se desplaza el ratón
             if (event.type == sf::Event::MouseMoved) {
+            	graphics.getWindow().setView(*graphics.getView(Juego));
             	//Si el ratón está sobre un objeto, cambiar el cursor por una lupa
-            	if (input.sobreObjeto(sf::Mouse::getPosition(graphics.getWindow()), (Objeto*) &this->_level._ayuntamiento)) {
+				if (input.sobreObjeto(graphics, (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+            							&this->_level._ayuntamiento)) {
             		_tipoCursor = lupa;
 
             	}
+            	else _tipoCursor = puntero;
             }
             if( event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left )
             {
+            	graphics.getWindow().setView(*graphics.getView(Completa));
             	//Get the mouse position:
             	starting_position = sf::Mouse::getPosition(graphics.getWindow());
                 // = event.mouseButton.x;
@@ -101,9 +106,11 @@ void Game::gameLoop() {
             	if (input.dentroVistaJuego(starting_position)) {
 					if (playerSelected) {
 						sf::Vector2i posicion_destino;
+						graphics.getWindow().setView(*graphics.getView(Juego));
 						posicion_destino = sf::Mouse::getPosition(graphics.getWindow());
 						this->_player.setDestino(graphics.getWindow().mapPixelToCoords(posicion_destino).x, graphics.getWindow().mapPixelToCoords(posicion_destino).y);
 						destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, this->_player.getDestinoX(), this->_player.getDestinoY());
+						graphics.getWindow().setView(*graphics.getView(Completa));
 					}
 
 					if (isMouseBox) {
@@ -123,6 +130,7 @@ void Game::gameLoop() {
             //Pulsamos el botón izquierdo mientras desplazamos el ratón
             if( event.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left) )
             {
+            	graphics.getWindow().setView(*graphics.getView(Juego));
             	current_position = sf::Mouse::getPosition(graphics.getWindow());
             	//printf ("Coords Antes %i, %i, %i, %i\n", starting_position.x, starting_position.y, current_position.x, current_position.y);
 
@@ -250,9 +258,8 @@ void Game::gameLoop() {
 void Game::draw(Graphics& graphics) {
     graphics.clear();
 
-    //Dibujar level y player en _vistaJuego
-    graphics.getWindow().setView(*graphics.getView(Juego));
     this->_level.draw(graphics);
+    graphics.getWindow().setView(*graphics.getView(Juego));
     this->_player.draw(graphics);
 
     //Si hay destino fijado, dibujarlo
@@ -283,15 +290,11 @@ void Game::draw(Graphics& graphics) {
     //Comparamos la posicion de player con el mapa,
     //tomando como extremos los bordes del mapa menos la mitad de la vista,
     //para luego centrar la vista.
-    if (position.x < viewMitadX)
-        position.x = viewMitadX;
-    else if (position.x > sizeMapaX - viewMitadX)
-        position.x = sizeMapaX - viewMitadX;
+    if (position.x < viewMitadX) position.x = viewMitadX;
+    else if (position.x > sizeMapaX - viewMitadX) position.x = sizeMapaX - viewMitadX;
 
-    if (position.y < viewMitadY)
-        position.y = viewMitadY;
-    else if (position.y > sizeMapaY - viewMitadY)
-        position.y = sizeMapaY - viewMitadY;
+    if (position.y < viewMitadY) position.y = viewMitadY;
+    else if (position.y > sizeMapaY - viewMitadY) position.y = sizeMapaY - viewMitadY;
 
     //printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
     //printf ("Posicion %f, %f\n", position.x, position.y);

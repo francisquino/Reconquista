@@ -5,6 +5,8 @@
 #include <map>
 #include <objeto.h>
 
+#include "graphics.h"
+
 class Input {
 public:
     void beginNewFrame();
@@ -27,7 +29,7 @@ public:
     bool dentroVistaInfo(const sf::Vector2i coord);
     bool dentroVistaJuego(const sf::Vector2i coord);
 
-    bool sobreObjeto(const sf::Vector2i coord, const Objeto* objeto);
+    bool sobreObjeto(Graphics& graphics, const sf::Vector2i coord, Objeto* cajaObjeto);
 
 private:
     std::map<sf::Keyboard::Key, bool> _heldKeys;
