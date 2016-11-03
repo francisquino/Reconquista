@@ -449,7 +449,9 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 }
 
 void Level::update(int elapsedTime) {
-    for (int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
+	this->_ayuntamiento.update(elapsedTime);
+
+    for (unsigned int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
         this->_ayuntamiento._unidades.at(i).update(elapsedTime);
     }
 	/*

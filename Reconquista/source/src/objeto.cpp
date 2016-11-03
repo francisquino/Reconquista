@@ -20,10 +20,11 @@ namespace object_constants {
 //Clase base objeto
 Objeto::Objeto() {}
 
-Objeto::Objeto(Graphics &graphics, std::string filePath, int sourceX, int sourceY, int width, int height,
+Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string filePath, int sourceX, int sourceY, int width, int height,
 				sf::Vector2i spawnPoint, int maxHealth, int timeToUpdate) :
                     AnimatedSprite(graphics, filePath, sourceX, sourceY, width, height,
                             spawnPoint.x, spawnPoint.y, timeToUpdate),
+					_tipo(tipo),
 					_dx(0),
 					_dy(0),
 					_destinoX(-1),
@@ -37,6 +38,50 @@ Objeto::Objeto(Graphics &graphics, std::string filePath, int sourceX, int source
 {}
 
 void Objeto::update(int elapsedTime) {
+	//Si hay un destino fijado, movernos hacia él.
+	if (this->_tipo==tipoObjeto::Campesino && this->getDestinoX() != -1 && this->getDestinoY() != -1) {
+		printf("Ir a destino\n");
+		if(this->getX() < this->getDestinoX()) {
+			printf("Mover derecha\n");
+			this->moveRight();
+			//printf ("Posicion player %f, %f\n", this->getX(), this->getY());
+			//printf ("Destino %f, %f\n", this->getDestinoX(), this->getDestinoY());
+			//printf ("Diferencia %f\n", floor(this->getX() - this->getDestinoX()));
+		}
+		if(this->getX() > this->getDestinoX()) {
+			printf("Mover izquierda\n");
+			this->moveLeft();
+	/*
+			printf ("Posicion player %f, %f\n", this->getX(), this->getY());
+			printf ("Destino %f, %f\n", this->getDestinoX(), this->getDestinoY());
+			printf ("Diferencia %f\n", floor(this->getX() - this->getDestinoX()));
+	*/
+		}
+		if(this->getY() < this->getDestinoY()) {
+			printf("Mover abajo\n");
+			this->moveDown();
+		}
+		if(this->getY() > this->getDestinoY()) {
+			printf("Mover arriba\n");
+			this->moveUp();
+		}
+
+		//Si hemos llegado al destino, inicializamos. Al usar números decimales, damos un margen de 2.0f
+		if(abs(floor(this->getX() - this->getDestinoX())) < 2.0f &&
+			abs(floor(this->getY() - this->getDestinoY())) < 2.0f) {
+			//printf("DESTINO ALCANZADO\n");
+			this->stopMoving();
+			this->setDestinoAlcanzado(true);
+			this->setDestino(-1, -1);
+		}
+	}
+
+	//Move by dx
+	this->_x += this->_dx * elapsedTime;
+	//Move by dy
+	this->_y += this->_dy * elapsedTime;
+
+
     AnimatedSprite::update(elapsedTime);
 }
 
@@ -81,14 +126,6 @@ void Objeto::stopMoving() {
     else this->playAnimation("IdleDown");
 }
 
-const float Objeto::getX() const {
-    return this->_x;
-}
-
-const float Objeto::getY() const {
-    return this->_y;
-}
-
 void Objeto::setDestino(const float destinoX, const float destinoY) {
 	this->_destinoX = destinoX;
 	this->_destinoY = destinoY;
@@ -125,7 +162,7 @@ void Objeto::sumarUnidad(Objeto unidad) {
 Ayuntamiento::Ayuntamiento() {}
 
 Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
-        Objeto(graphics, "content/sprites/Ayuntamientos.png", 0, 0, 32, 32, spawnPoint, 10, 100)
+        Objeto(graphics, tipoObjeto::Ayuntamiento, "content/sprites/Ayuntamientos.png", 0, 0, 32, 32, spawnPoint, 10, 100)
  {
 	graphics.loadImage("content/sprites/Ayuntamientos.png");
 	this->setupAnimations();
@@ -135,7 +172,7 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
  }
 
  void Ayuntamiento::update(int elapsedTime) {
-    Objeto::update(elapsedTime);
+	 Objeto::update(elapsedTime);
  }
 
  void Ayuntamiento::draw(Graphics &graphics) {
@@ -154,7 +191,7 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
  Campesino::Campesino() {}
 
  Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
- 	Objeto(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint, 3, 100)
+ 	Objeto(graphics, tipoObjeto::Campesino, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint, 3, 100)
  {
      graphics.loadImage("content/sprites/Tile-set-Toen's Medieval Strategy.png");
      this->setupAnimations();
@@ -162,7 +199,55 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
  }
 
  void Campesino::update(int elapsedTime) {
-    Objeto::update(elapsedTime);
+	 printf("Hay destino?\n");
+
+	//Si hay un destino fijado, movernos hacia él.
+	if (this->getDestinoX() != -1 && this->getDestinoY() != -1) {
+		printf("Ir a destino\n");
+		if(this->getX() < this->getDestinoX()) {
+			printf("Mover derecha\n");
+			this->moveRight();
+			//printf ("Posicion player %f, %f\n", this->getX(), this->getY());
+			//printf ("Destino %f, %f\n", this->getDestinoX(), this->getDestinoY());
+			//printf ("Diferencia %f\n", floor(this->getX() - this->getDestinoX()));
+		}
+		if(this->getX() > this->getDestinoX()) {
+			printf("Mover izquierda\n");
+			this->moveLeft();
+	/*
+			printf ("Posicion player %f, %f\n", this->getX(), this->getY());
+			printf ("Destino %f, %f\n", this->getDestinoX(), this->getDestinoY());
+			printf ("Diferencia %f\n", floor(this->getX() - this->getDestinoX()));
+	*/
+		}
+		if(this->getY() < this->getDestinoY()) {
+			printf("Mover abajo\n");
+			this->moveDown();
+		}
+		if(this->getY() > this->getDestinoY()) {
+			printf("Mover arriba\n");
+			this->moveUp();
+		}
+
+		//Si hemos llegado al destino, inicializamos. Al usar números decimales, damos un margen de 2.0f
+		if(abs(floor(this->getX() - this->getDestinoX())) < 2.0f &&
+			abs(floor(this->getY() - this->getDestinoY())) < 2.0f) {
+			//printf("DESTINO ALCANZADO\n");
+			this->stopMoving();
+			this->setDestinoAlcanzado(true);
+			this->setDestino(-1, -1);
+		}
+	}
+
+	//Move by dx
+	this->_x += this->_dx * elapsedTime;
+	//Move by dy
+	this->_y += this->_dy * elapsedTime;
+
+	printf("Update Campesino llamando a update objeto\n");
+
+	Objeto::update(elapsedTime);
+	//AnimatedSprite::update(elapsedTime);
  }
 
  void Campesino::draw(Graphics &graphics) {

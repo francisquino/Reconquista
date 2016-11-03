@@ -11,17 +11,32 @@
 #include "animatedsprite.h"
 #include "globals.h"
 
+#include <cmath>
 #include <vector>
 #include <map>
 #include <string>
 
 class Graphics;
 
+namespace tipoObjeto {
+    enum TipoObjeto {
+        Ayuntamiento,
+        Mina,
+        Bosque,
+        Campesino,
+        Caballero,
+        NoDefinido
+    };
+}
+
 class Objeto : public AnimatedSprite {
 public:
     Objeto();
-    Objeto(Graphics &graphics, std::string filePath, int sourceX, int sourceY,
+    Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string filePath, int sourceX, int sourceY,
             int width, int height, sf::Vector2i spawnPoint, int maxHealth, int timeToUpdate);
+
+    const inline tipoObjeto::TipoObjeto getTipo() const { return this->_tipo; }
+
     virtual void update(int elapsedTime);
     virtual void draw(Graphics &graphics);
 
@@ -53,9 +68,6 @@ public:
      */
     void stopMoving();
 
-    const float getX() const;
-    const float getY() const;
-
     void setDestino(const float destinoX, const float destinoY);
     const float getDestinoX() const { return this->_destinoX; }
     const float getDestinoY() const { return this->_destinoY; }
@@ -83,6 +95,8 @@ public:
 
 
 protected:
+    tipoObjeto::TipoObjeto _tipo;
+
     float _dx, _dy, _destinoX, _destinoY;
 
     Direction _facing;
