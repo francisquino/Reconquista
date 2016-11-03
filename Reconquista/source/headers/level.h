@@ -26,7 +26,7 @@ public:
     Level ();
     Level(std::string mapName, Graphics &graphics);
     ~Level();
-    void update(int elapsedTime, Player &player);
+    void update(int elapsedTime);
     void draw(Graphics &graphics);
 
     std::vector<Rectangle> checkTileCollisions(const Rectangle &other);

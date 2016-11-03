@@ -157,6 +157,10 @@ void Game::gameLoop() {
 								this->_info.getIconoEntrenarCampesino()->getBoundingBox())) {
             				printf("Entrenar Campesino\n");
 
+                            Campesino campesino = Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento.getX()+32*this->_level._ayuntamiento._unidades.size(),
+                            														this->_level._ayuntamiento.getY()-32));
+            				this->_level._ayuntamiento.sumarUnidad(campesino);
+
             				//Comprobar que cumnplimos con requisitos (recursos)
             				//Si se puede, lanzar CrearCampesino para este Ayto.
             				//Borrar iconos acciones de ayto.
@@ -306,7 +310,7 @@ void Game::draw(Graphics& graphics) {
 
     this->_level.draw(graphics);
     graphics.getWindow().setView(*graphics.getView(Juego));
-    this->_player.draw(graphics);
+    //this->_player.draw(graphics);
 
     //Si hay destino fijado, dibujarlo
     if (this->_player.getDestinoX() != -1 && this->_player.getDestinoY() != -1) {
@@ -361,8 +365,8 @@ void Game::draw(Graphics& graphics) {
 void Game::update(float elapsedTime) {
     //std::cout << elapsedTime << "\n";
 
-    this->_player.update(elapsedTime);
-	this->_level.update(elapsedTime, this->_player);
+    //this->_player.update(elapsedTime);
+	this->_level.update(elapsedTime);
     this->_info.update(elapsedTime);
 
 	//Comprobar que objetos estan dentro de la mouseBox

@@ -448,7 +448,10 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
     }
 }
 
-void Level::update(int elapsedTime, Player &player) {
+void Level::update(int elapsedTime) {
+    for (int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
+        this->_ayuntamiento._unidades.at(i).update(elapsedTime);
+    }
 	/*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
         this->_animatedTileList.at(i).update(elapsedTime);
@@ -508,6 +511,14 @@ void Level::draw(Graphics &graphics) {
     //Dibujar ayuntamiento en vista Juego
     graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
 	this->_ayuntamiento.draw(graphics);
+
+	//Dibujar las unidades del ayuntamiento.
+	for (int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
+	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
+		this->_ayuntamiento._unidades.at(i).draw(graphics);
+	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+		this->_ayuntamiento._unidades.at(i).draw(graphics);
+	}
 
     /*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
