@@ -23,8 +23,6 @@ bool _aytoSeleccionado = false;
 Objeto* objetoSeleccionado = NULL;
 
 sf::VertexArray mouseBox(sf::LinesStrip, 5);
-sf::VertexArray playerBox(sf::LinesStrip, 5);
-sf::VertexArray ayuntamientoBox(sf::LinesStrip, 5);
 //Posicion ratón
 sf::Vector2i starting_position, current_position;
 sf::Vector2f startingPositionWorldPos, currentPositionWorldPos;
@@ -131,18 +129,9 @@ void Game::gameLoop() {
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
                     							this->_level._ayuntamiento.getBoundingBox())) {
             				//Mostrar en vista Info los datos del Ayuntamiento y Acciones
-            				ayuntamientoBox[0].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getTop());
-            				ayuntamientoBox[0].color = sf::Color::Green;
-            				ayuntamientoBox[1].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getRight(), this->_level._ayuntamiento.getBoundingBox().getTop());
-            				ayuntamientoBox[1].color = sf::Color::Green;
-            				ayuntamientoBox[2].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getRight(), this->_level._ayuntamiento.getBoundingBox().getBottom());
-            				ayuntamientoBox[2].color = sf::Color::Green;
-            				ayuntamientoBox[3].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getBottom());
-            				ayuntamientoBox[3].color = sf::Color::Green;
-            				ayuntamientoBox[4].position = sf::Vector2f(this->_level._ayuntamiento.getBoundingBox().getLeft(), this->_level._ayuntamiento.getBoundingBox().getTop());
-            				ayuntamientoBox[4].color = sf::Color::Green;
 
             				objetoSeleccionado = &this->_level._ayuntamiento;
+            				objetoSeleccionado->setSeleccionado(true);
             			}
 
             			else {
@@ -151,16 +140,7 @@ void Game::gameLoop() {
 								if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
 												this->_level._ayuntamiento._unidades.at(i)->getBoundingBox())) {
 		            				objetoSeleccionado = this->_level._ayuntamiento._unidades.at(i);
-									playerBox[0].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getLeft(), objetoSeleccionado->getBoundingBox().getTop());
-									playerBox[0].color = sf::Color::Green;
-									playerBox[1].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getRight(), objetoSeleccionado->getBoundingBox().getTop());
-									playerBox[1].color = sf::Color::Green;
-									playerBox[2].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getRight(), objetoSeleccionado->getBoundingBox().getBottom());
-									playerBox[2].color = sf::Color::Green;
-									playerBox[3].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getLeft(), objetoSeleccionado->getBoundingBox().getBottom());
-									playerBox[3].color = sf::Color::Green;
-									playerBox[4].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getLeft(), objetoSeleccionado->getBoundingBox().getTop());
-									playerBox[4].color = sf::Color::Green;
+		            				objetoSeleccionado->setSeleccionado(true);
 									break;
 								}
 							}
@@ -340,8 +320,6 @@ void Game::draw(Graphics& graphics) {
     //Dibujar caja click & drag raton
     graphics.getWindow().setView(*graphics.getView(Juego));
     graphics.getWindow().draw(mouseBox);
-    graphics.getWindow().draw(playerBox);
-    graphics.getWindow().draw(ayuntamientoBox);
 
 
     //Centrar vista Juego según la posición del objeto seleccionado

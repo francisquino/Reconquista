@@ -8,19 +8,22 @@
 #ifndef OBJETO_H
 #define OBJETO_H
 
-#include "animatedsprite.h"
-#include "globals.h"
-
 #include <cmath>
 #include <vector>
 #include <map>
 #include <string>
+
+#include <SFML/Graphics.hpp>
+
+#include "animatedsprite.h"
+#include "globals.h"
 
 class Graphics;
 
 namespace tipoObjeto {
     enum TipoObjeto {
         Ayuntamiento,
+        Barracones,
         Mina,
         Bosque,
         Campesino,
@@ -77,6 +80,9 @@ public:
     bool destinoAlcanzado() const { return this->_destinoAlcanzado; }
     void setDestinoAlcanzado(const bool destino);
 
+    bool getSeleccionado() const { return this->_seleccionado; }
+    void setSeleccionado(const bool seleccionado);
+
     bool checkColision(const Rectangle &other);
 
     const inline int getMaxHealth() const { return this->_maxHealth; }
@@ -104,10 +110,10 @@ protected:
     Direction _facing;
 
     bool _destinoAlcanzado;
+    bool _seleccionado;
 
     int _maxHealth;
     int _currentHealth;
-
 }; //class Objeto
 
 class Ayuntamiento : public Objeto {
@@ -121,6 +127,18 @@ public:
     void setupAnimations();
 
 }; //class Ayuntamiento
+
+class Barracones : public Objeto {
+public:
+	Barracones();
+	Barracones(Graphics &graphics, sf::Vector2i spawnPoint);
+    void update(int elapsedTime);
+    void draw(Graphics &graphics);
+
+    void animationDone(std::string currentAnimation);
+    void setupAnimations();
+
+}; //class Barracones
 
 class Campesino : public Objeto {
 public:

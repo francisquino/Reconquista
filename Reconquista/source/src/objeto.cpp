@@ -41,6 +41,25 @@ void Objeto::update(int elapsedTime) {
 	AnimatedSprite::update(elapsedTime);}
 
 void Objeto::draw(Graphics &graphics) {
+    sf::VertexArray _box(sf::LinesStrip, 5);
+	//Si el objeto está seleccionado, dibujamos su BoundingBox
+	if (this->_seleccionado) {
+		_box[0].position = sf::Vector2f(this->getBoundingBox().getLeft(), this->getBoundingBox().getTop());
+		_box[0].color = sf::Color::Green;
+		_box[1].position = sf::Vector2f(this->getBoundingBox().getRight(), this->getBoundingBox().getTop());
+		_box[1].color = sf::Color::Green;
+		_box[2].position = sf::Vector2f(this->getBoundingBox().getRight(), this->getBoundingBox().getBottom());
+		_box[2].color = sf::Color::Green;
+		_box[3].position = sf::Vector2f(this->getBoundingBox().getLeft(), this->getBoundingBox().getBottom());
+		_box[3].color = sf::Color::Green;
+		_box[4].position = sf::Vector2f(this->getBoundingBox().getLeft(), this->getBoundingBox().getTop());
+		_box[4].color = sf::Color::Green;
+
+		graphics.getWindow().setView(*graphics.getView(Juego));
+		graphics.getWindow().draw(_box);
+	}
+	else _box = {};
+
     AnimatedSprite::draw(graphics, this->_x, this->_y);
 }
 
@@ -89,6 +108,11 @@ void Objeto::setDestino(const float destinoX, const float destinoY) {
 void Objeto::setDestinoAlcanzado(const bool destino) {
 	this->_destinoAlcanzado = destino;
 }
+
+void Objeto::setSeleccionado(const bool seleccionado) {
+	this->_seleccionado = seleccionado;
+}
+
 
 bool Objeto::checkColision(const Rectangle &other) {
     if (this->getBoundingBox().collidesWith(other)) {
