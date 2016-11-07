@@ -104,7 +104,7 @@ void Game::gameLoop() {
 					//Recorrer las unidades del ayuntamiento
 					for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
 						if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-										this->_level._ayuntamiento._unidades.at(i).getBoundingBox())) {
+										this->_level._ayuntamiento._unidades.at(i)->getBoundingBox())) {
 							_tipoCursor = lupa;
 							break;
 						}
@@ -125,7 +125,7 @@ void Game::gameLoop() {
             	//
             	if (input.dentroVistaJuego(starting_position)) {
             		//Si el cursor es Lupa (estamos sobre un objeto)
-            		if (_tipoCursor == lupa){
+            		if (_tipoCursor == lupa) {
             			graphics.getWindow().setView(*graphics.getView(Juego));
             			//Estamos sobre Ayuntamiento
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
@@ -149,8 +149,8 @@ void Game::gameLoop() {
 							//Recorrer las unidades del ayuntamiento
 							for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
 								if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-												this->_level._ayuntamiento._unidades.at(i).getBoundingBox())) {
-		            				objetoSeleccionado = &this->_level._ayuntamiento._unidades.at(i);
+												this->_level._ayuntamiento._unidades.at(i)->getBoundingBox())) {
+		            				objetoSeleccionado = this->_level._ayuntamiento._unidades.at(i);
 									playerBox[0].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getLeft(), objetoSeleccionado->getBoundingBox().getTop());
 									playerBox[0].color = sf::Color::Green;
 									playerBox[1].position = sf::Vector2f(objetoSeleccionado->getBoundingBox().getRight(), objetoSeleccionado->getBoundingBox().getTop());
@@ -169,7 +169,7 @@ void Game::gameLoop() {
             		}
 
                 	//Campesino seleccionado. Al pulsar con el boton izquierdo, fijamos un destino.
-					if (objetoSeleccionado!=NULL){// && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
+					if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
 						sf::Vector2i posicion_destino;
 						graphics.getWindow().setView(*graphics.getView(Juego));
 						posicion_destino = sf::Mouse::getPosition(graphics.getWindow());
@@ -226,7 +226,9 @@ void Game::gameLoop() {
                 		//Pulsamos sobre la acción "Entrenar Campesino"
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
 								this->_info.getIconoEntrenarCampesino()->getBoundingBox())) {
-                            Campesino campesino = Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento.getX()+32*this->_level._ayuntamiento._unidades.size(),
+
+            				//Hacemos Upcasting, para que al llamar al update ejecute la función de Campesino y no la de Objeto.
+                            Objeto* campesino = new Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento.getX()+32*this->_level._ayuntamiento._unidades.size(),
                             														this->_level._ayuntamiento.getY()-32));
             				this->_level._ayuntamiento.sumarUnidad(campesino);
 
@@ -380,7 +382,6 @@ void Game::draw(Graphics& graphics) {
 }
 
 void Game::update(float elapsedTime) {
-    //std::cout << elapsedTime << "\n";
 
     //this->_player.update(elapsedTime);
 	this->_level.update(elapsedTime);

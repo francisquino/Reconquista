@@ -35,6 +35,8 @@ public:
     Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string filePath, int sourceX, int sourceY,
             int width, int height, sf::Vector2i spawnPoint, int maxHealth, int timeToUpdate);
 
+    virtual ~Objeto() {}
+
     const inline tipoObjeto::TipoObjeto getTipo() const { return this->_tipo; }
 
     virtual void update(int elapsedTime);
@@ -86,10 +88,10 @@ public:
 
     int getRecurso(std::string recurso) { return this->_recursos[recurso];}
 
-    void sumarUnidad(Objeto unidad);
+    void sumarUnidad(Objeto* unidad);
 
 
-    std::vector<Objeto> _unidades;
+    std::vector<Objeto*> _unidades;
 
     std::map<std::string, int> _recursos;
 

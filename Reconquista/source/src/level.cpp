@@ -452,7 +452,7 @@ void Level::update(int elapsedTime) {
 	this->_ayuntamiento.update(elapsedTime);
 
     for (unsigned int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
-        this->_ayuntamiento._unidades.at(i).update(elapsedTime);
+        this->_ayuntamiento._unidades.at(i)->update(elapsedTime);
     }
 	/*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
@@ -517,9 +517,9 @@ void Level::draw(Graphics &graphics) {
 	//Dibujar las unidades del ayuntamiento.
 	for (int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
-		this->_ayuntamiento._unidades.at(i).draw(graphics);
+		this->_ayuntamiento._unidades.at(i)->draw(graphics);
 	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
-		this->_ayuntamiento._unidades.at(i).draw(graphics);
+		this->_ayuntamiento._unidades.at(i)->draw(graphics);
 	}
 
     /*
