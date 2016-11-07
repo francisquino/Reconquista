@@ -132,6 +132,11 @@ void Game::gameLoop() {
 
             				objetoSeleccionado = &this->_level._ayuntamiento;
             				objetoSeleccionado->setSeleccionado(true);
+
+            				//El resto de objetos se deseleccionan
+							for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
+								this->_level._ayuntamiento._unidades.at(i)->setSeleccionado(false);
+							}
             			}
 
             			else {
@@ -143,7 +148,13 @@ void Game::gameLoop() {
 		            				objetoSeleccionado->setSeleccionado(true);
 									break;
 								}
+								//El resto de unidades se deseleccionan
+								else {
+		            				this->_level._ayuntamiento._unidades.at(i)->setSeleccionado(false);
+								}
 							}
+							//El ayuntamiento también se deselecciona
+            				this->_level._ayuntamiento.setSeleccionado(false);
             			}
 
             		}

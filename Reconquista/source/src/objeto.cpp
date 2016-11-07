@@ -41,9 +41,9 @@ void Objeto::update(int elapsedTime) {
 	AnimatedSprite::update(elapsedTime);}
 
 void Objeto::draw(Graphics &graphics) {
-    sf::VertexArray _box(sf::LinesStrip, 5);
 	//Si el objeto está seleccionado, dibujamos su BoundingBox
 	if (this->_seleccionado) {
+	    sf::VertexArray _box(sf::LinesStrip, 5);
 		_box[0].position = sf::Vector2f(this->getBoundingBox().getLeft(), this->getBoundingBox().getTop());
 		_box[0].color = sf::Color::Green;
 		_box[1].position = sf::Vector2f(this->getBoundingBox().getRight(), this->getBoundingBox().getTop());
@@ -58,7 +58,6 @@ void Objeto::draw(Graphics &graphics) {
 		graphics.getWindow().setView(*graphics.getView(Juego));
 		graphics.getWindow().draw(_box);
 	}
-	else _box = {};
 
     AnimatedSprite::draw(graphics, this->_x, this->_y);
 }
