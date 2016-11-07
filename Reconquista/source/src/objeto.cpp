@@ -38,7 +38,7 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
 {}
 
 void Objeto::update(int elapsedTime) {
-}
+	AnimatedSprite::update(elapsedTime);}
 
 void Objeto::draw(Graphics &graphics) {
     AnimatedSprite::draw(graphics, this->_x, this->_y);
