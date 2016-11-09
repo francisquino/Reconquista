@@ -4,7 +4,7 @@ Al pasar el cursor por encima de una unidad cambia a Lupa. Si pulsamos btn izq s
 Unidad aparece rodeada por caja verde.
 Se abre la ventana de información y opciones de la unidad:
 
-	Peasant:
+	Campesino:
 		Energía
 		
 		Mover -> Cambia cursor para fijar destino o salir. Si fijamos destino, empieza a moverse.
@@ -16,3 +16,12 @@ Se abre la ventana de información y opciones de la unidad:
 Peasant. Cuando recolecta madera u oro lo almacena en el Ayuntamiento. Luego vuelve al recurso.
 		
 El Ayuntamiento permite crear una unidad básica o carretera.
+
+> Crear recurso bosque y mina de oro.
+> Al seleccionar Campesino, mostrar acciones.
+		Si se selecciona "Explotar recursos", cambiar cursor a "Fijar posición para explotar recurso".
+		Posición fijada: ir a esa posición. si es un recurso, obtener recurso.
+		Cada cierto tiempo, ir a Almacén o Ayuntamiento a depositar recurso. Incrementar cantidad recursos.
+		
+> Crear unidad Caballero.
+> Los Caballeros se deben crear en los Barracones.		

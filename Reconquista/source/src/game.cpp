@@ -51,7 +51,7 @@ void Game::gameLoop() {
     _tipoCursor = puntero;
 
     this->_level = Level("MapReconquista1", graphics);
-    this->_player = Player(graphics, this->_level.getPlayerSpawnPoint());
+    //this->_player = Player(graphics, this->_level.getPlayerSpawnPoint());
     this->_info = InfoUser(graphics);
 
     //this->_hud = HUD(graphics, this->_player);
@@ -213,7 +213,8 @@ void Game::gameLoop() {
             	else if (input.dentroVistaInfo(starting_position)) {
 					graphics.getWindow().setView(*graphics.getView(Info));
             		//Si el ayuntamiento está seleccionado:
-					if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Ayuntamiento) {
+					if (this->_level._ayuntamiento.getSeleccionado()) {
+					//if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Ayuntamiento) {
                 		//Pulsamos sobre la acción "Entrenar Campesino"
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
 								this->_info.getIconoEntrenarCampesino()->getBoundingBox())) {
@@ -333,18 +334,19 @@ void Game::draw(Graphics& graphics) {
     graphics.getWindow().draw(mouseBox);
 
 
-    //Centrar vista Juego según la posición del objeto seleccionado
-    //Obtener posicion de player
+    //Centrar vista Juego según la posición del ayuntamiento inicialmente, luego según el objeto seleccionado
     sf::Vector2f position(0, 0);
-    position.x = this->_player.getX();
-    position.y = this->_player.getY();
+    if (objetoSeleccionado==NULL)
+    	position = sf::Vector2f(this->_level._ayuntamiento.getX(), this->_level._ayuntamiento.getY());
+    else
+    	position = sf::Vector2f(objetoSeleccionado->getX(), objetoSeleccionado->getY());
     //Obtener el punto medio de _vistaJuego
     float viewMitadX = graphics.getView(Juego)->getSize().x * 0.5;
     float viewMitadY = graphics.getView(Juego)->getSize().y * 0.5;
     //Obtener tamaño del mapa
     int sizeMapaX = this->_level.getMapSize().x * this->_level.getTileSize().x * globals::SPRITE_SCALE;
     int sizeMapaY = this->_level.getMapSize().y * this->_level.getTileSize().y * globals::SPRITE_SCALE;
-    //Comparamos la posicion de player con el mapa,
+    //Comparamos la posicion de ayuntamiento con el mapa,
     //tomando como extremos los bordes del mapa menos la mitad de la vista,
     //para luego centrar la vista.
     if (position.x < viewMitadX) position.x = viewMitadX;

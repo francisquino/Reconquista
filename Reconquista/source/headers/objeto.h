@@ -90,16 +90,13 @@ public:
 
     void gainHealth(int amount);
 
-    void modificarRecurso(std::string recurso, int cantidad);
-
-    int getRecurso(std::string recurso) { return this->_recursos[recurso];}
+    void modificarCantidadMaterial(std::string material, int cantidad);
+    int getCantidadMaterial(std::string material) { return this->_materiales[material];}
 
     void sumarUnidad(Objeto* unidad);
 
 
     std::vector<Objeto*> _unidades;
-
-    std::map<std::string, int> _recursos;
 
 
 protected:
@@ -114,6 +111,8 @@ protected:
 
     int _maxHealth;
     int _currentHealth;
+
+    std::map<std::string, int> _materiales;
 }; //class Objeto
 
 class Ayuntamiento : public Objeto {
@@ -139,6 +138,30 @@ public:
     void setupAnimations();
 
 }; //class Barracones
+
+class Mina : public Objeto {
+public:
+	Mina();
+	Mina(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad);
+    void update(int elapsedTime);
+    void draw(Graphics &graphics);
+
+    void animationDone(std::string currentAnimation);
+    void setupAnimations();
+
+}; //class Mina
+
+class Bosque : public Objeto {
+public:
+	Bosque();
+	Bosque(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad);
+    void update(int elapsedTime);
+    void draw(Graphics &graphics);
+
+    void animationDone(std::string currentAnimation);
+    void setupAnimations();
+
+}; //class Bosque
 
 class Campesino : public Objeto {
 public:

@@ -34,7 +34,7 @@ public:
     std::vector<Door> checkDoorCollisions(const Rectangle &other);
     std::vector<Enemy*> checkEnemyCollisions(const Rectangle &other);
 
-    const sf::Vector2i getPlayerSpawnPoint() const;
+    //const sf::Vector2i getPlayerSpawnPoint() const;
 
     const sf::Vector2i getMapSize() const { return this->_size; }
     const sf::Vector2i getTileSize() const { return this->_tileSize; }
@@ -43,12 +43,12 @@ public:
 
 private:
     std::string _mapName;
-    sf::Vector2i _spawnPoint;
+    //sf::Vector2i _spawnPoint;
 
     sf::Vector2i _size;
     sf::Vector2i _tileSize;
 
-    sf::Texture* _backgroundTexture;
+    //sf::Texture* _backgroundTexture;
 
     std::vector<Tile> _tileList;
     std::vector<Tileset> _tilesets;
@@ -61,6 +61,8 @@ private:
     std::vector<Door> _doorList;
 
     std::vector<Enemy*> _enemies;
+
+    std::vector<Objeto*> _recursos;
 
     /* void loadMap
      * Loads a map

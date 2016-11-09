@@ -368,14 +368,80 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                         const char* name = pObject->Attribute("name");
                         std::stringstream ss;
                         ss << name;
-                        if(ss.str() == "player") {
-                            this->_spawnPoint = sf::Vector2i(std::ceil(x) * globals::SPRITE_SCALE,
-                                    std::ceil(y) * globals::SPRITE_SCALE);
-                        }
                         if(ss.str() == "ayuntamiento") {
                             this->_ayuntamiento = Ayuntamiento(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
                                     std::floor(y) * globals::SPRITE_SCALE));
                         }
+                        if(ss.str() == "campesino") {
+                            this->_ayuntamiento._unidades.push_back(new Campesino(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+                                    std::floor(y) * globals::SPRITE_SCALE)));
+                        }
+
+                        pObject = pObject->NextSiblingElement("object");
+                    }
+                }
+            }
+
+            else if (ss.str() == "recursos") {
+                XMLElement* pObject = pObjectGroup->FirstChildElement("object");
+                if (pObject != NULL){
+                    while(pObject) {
+                        float x = pObject->FloatAttribute("x");
+                        float y = pObject->FloatAttribute("y");
+                        const char* name = pObject->Attribute("name");
+                                                std::stringstream ss;
+                                                ss << name;
+						if (ss.str() == "mina") {
+	                        XMLElement* pProperties = pObject->FirstChildElement("properties");
+	                        if (pProperties != NULL){
+	                            while(pProperties) {
+	                                XMLElement* pProperty = pProperties->FirstChildElement("property");
+	                                if (pProperty != NULL){
+	                                    while(pProperty) {
+
+	                                        const char* name = pProperty->Attribute("name");
+	                                        std::stringstream ss;
+	                                        ss << name;
+	                                        if(ss.str() == "cantidad") {
+	                                            const char* value = pProperty->Attribute("value");
+	                                            std::stringstream ss2;
+	                                            ss2 << value;
+	                                            this->_recursos.push_back(new Mina(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+	                                                    std::floor(y) * globals::SPRITE_SCALE), atoi(ss2.str().c_str())));
+	                                        }
+	                                        pProperty = pProperty->NextSiblingElement("property");
+	                                    }
+	                                }
+	                                pProperties = pProperties->NextSiblingElement("properties");
+	                            }
+	                        }
+						}
+
+						else if (ss.str() == "bosque") {
+	                        XMLElement* pProperties = pObject->FirstChildElement("properties");
+	                        if (pProperties != NULL){
+	                            while(pProperties) {
+	                                XMLElement* pProperty = pProperties->FirstChildElement("property");
+	                                if (pProperty != NULL){
+	                                    while(pProperty) {
+
+	                                        const char* name = pProperty->Attribute("name");
+	                                        std::stringstream ss;
+	                                        ss << name;
+	                                        if(ss.str() == "cantidad") {
+	                                            const char* value = pProperty->Attribute("value");
+	                                            std::stringstream ss2;
+	                                            ss2 << value;
+	                                            this->_recursos.push_back(new Bosque(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+	                                                    std::floor(y) * globals::SPRITE_SCALE), atoi(ss2.str().c_str())));
+	                                        }
+	                                        pProperty = pProperty->NextSiblingElement("property");
+	                                    }
+	                                }
+	                                pProperties = pProperties->NextSiblingElement("properties");
+	                            }
+	                        }
+						}
 
                         pObject = pObject->NextSiblingElement("object");
                     }
@@ -454,6 +520,11 @@ void Level::update(int elapsedTime) {
     for (unsigned int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
         this->_ayuntamiento._unidades.at(i)->update(elapsedTime);
     }
+
+    for (int i=0; i<this->_recursos.size(); i++) {
+        this->_recursos.at(i)->update(elapsedTime);
+    }
+
 	/*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
         this->_animatedTileList.at(i).update(elapsedTime);
@@ -487,7 +558,7 @@ void Level::draw(Graphics &graphics) {
     						sf::Vector2f(graphics.getView(Juego)->getSize().x + this->_tileList.at(0).getSize().x,
     									graphics.getView(Juego)->getSize().y + this->_tileList.at(0).getSize().y));
 
-    for (int i=0; i<this->_tileList.size(); i++) {
+    for (unsigned int i=0; i<this->_tileList.size(); i++) {
         //Dibujamos todos en la vista vista Minimapa
         graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
         this->_tileList.at(i).draw(graphics);
@@ -515,12 +586,18 @@ void Level::draw(Graphics &graphics) {
 	this->_ayuntamiento.draw(graphics);
 
 	//Dibujar las unidades del ayuntamiento.
-	for (int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
+	for (unsigned int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
 		this->_ayuntamiento._unidades.at(i)->draw(graphics);
 	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
 		this->_ayuntamiento._unidades.at(i)->draw(graphics);
 	}
+
+	//Dibujar los recursos
+    for (int i=0; i<this->_recursos.size(); i++) {
+    	graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+        this->_recursos.at(i)->draw(graphics);
+    }
 
     /*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
@@ -574,9 +651,9 @@ std::vector<Enemy*> Level::checkEnemyCollisions(const Rectangle &other) {
 }
 */
 
-const sf::Vector2i Level::getPlayerSpawnPoint() const {
+/*const sf::Vector2i Level::getPlayerSpawnPoint() const {
     return this->_spawnPoint;
-}
+}*/
 
 sf::Vector2i Level::getTilesetPosition(Tileset tls, int gid, int tileWidth, int tileHeight) {
     sf::Vector2u tilesetSize = tls.Texture->getSize();

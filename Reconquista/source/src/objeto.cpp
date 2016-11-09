@@ -31,10 +31,11 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
 					_destinoY(-1),
                     _facing(LEFT),
 					_destinoAlcanzado(false),
+					_seleccionado(false),
                     _maxHealth(maxHealth),
                     _currentHealth(maxHealth),
             		_unidades(),
-            		_recursos()
+            		_materiales()
 {}
 
 void Objeto::update(int elapsedTime) {
@@ -126,9 +127,9 @@ void Objeto::gainHealth(int amount) {
 }
 
 
-void Objeto::modificarRecurso(std::string recurso, int cantidad) {
-	if ((this->_recursos[recurso] += cantidad) < 0)
-		this->_recursos[recurso] = 0;
+void Objeto::modificarCantidadMaterial(std::string material, int cantidad) {
+	if ((this->_materiales[material] += cantidad) < 0)
+		this->_materiales[material] = 0;
  }
 
 void Objeto::sumarUnidad(Objeto* unidad) {
@@ -145,8 +146,8 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
 	graphics.loadImage("content/sprites/Ayuntamientos.png");
 	this->setupAnimations();
     this->playAnimation("AyuntamientoInicial");
-    this->modificarRecurso("oro", 500);
-    this->modificarRecurso("madera", 800);
+    this->modificarCantidadMaterial("oro", 500);
+    this->modificarCantidadMaterial("madera", 800);
  }
 
  void Ayuntamiento::update(int elapsedTime) {
@@ -164,6 +165,61 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
  void Ayuntamiento::setupAnimations() {
     this->addAnimation(1, 0, 0, "AyuntamientoInicial", 32, 32, sf::Vector2i(0,0));
  }
+
+//class Mina
+Mina::Mina() {}
+
+Mina::Mina(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad) :
+                Objeto(graphics, tipoObjeto::Mina, "content/sprites/Recursos.png", 0, 0, 16, 16, spawnPoint, 8, 100)
+{
+	graphics.loadImage("content/sprites/Recursos.png");
+	this->setupAnimations();
+    this->playAnimation("MinaInicial");
+    this->modificarCantidadMaterial("oro", cantidad);
+}
+
+void Mina::update(int elapsedTime) {
+	 Objeto::update(elapsedTime);
+}
+
+void Mina::draw(Graphics &graphics) {
+    Objeto::draw(graphics);
+}
+
+void Mina::animationDone(std::string currentAnimation) {
+}
+
+void Mina::setupAnimations() {
+    this->addAnimation(1, 0, 0, "MinaInicial", 16, 16, sf::Vector2i(0,0));
+}
+
+
+ //class Bosque
+Bosque::Bosque() {}
+
+Bosque::Bosque(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad) :
+                Objeto(graphics, tipoObjeto::Bosque, "content/sprites/Recursos.png", 16, 0, 16, 16, spawnPoint, 0, 100)
+{
+	graphics.loadImage("content/sprites/Recursos.png");
+	this->setupAnimations();
+    this->playAnimation("BosqueInicial");
+    this->modificarCantidadMaterial("madera", cantidad);
+}
+
+void Bosque::update(int elapsedTime) {
+	 Objeto::update(elapsedTime);
+}
+
+void Bosque::draw(Graphics &graphics) {
+    Objeto::draw(graphics);
+}
+
+void Bosque::animationDone(std::string currentAnimation) {
+}
+
+void Bosque::setupAnimations() {
+    this->addAnimation(1, 1, 0, "BosqueInicial", 16, 16, sf::Vector2i(0,0));
+}
 
  //Clase Campesino
  Campesino::Campesino() {}
