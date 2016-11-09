@@ -521,7 +521,7 @@ void Level::update(int elapsedTime) {
         this->_ayuntamiento._unidades.at(i)->update(elapsedTime);
     }
 
-    for (int i=0; i<this->_recursos.size(); i++) {
+    for (unsigned int i=0; i<this->_recursos.size(); i++) {
         this->_recursos.at(i)->update(elapsedTime);
     }
 
@@ -559,9 +559,9 @@ void Level::draw(Graphics &graphics) {
     									graphics.getView(Juego)->getSize().y + this->_tileList.at(0).getSize().y));
 
     for (unsigned int i=0; i<this->_tileList.size(); i++) {
-        //Dibujamos todos en la vista vista Minimapa
-        graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
-        this->_tileList.at(i).draw(graphics);
+        ////Dibujamos todos en la vista vista Minimapa
+        //graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
+        //this->_tileList.at(i).draw(graphics);
 
         //Obtenemos la caja de colisión del tile
         sf::FloatRect tileBounds(sf::Vector2f(this->_tileList.at(i).getPosition().x, this->_tileList.at(i).getPosition().y),
@@ -595,6 +595,8 @@ void Level::draw(Graphics &graphics) {
 
 	//Dibujar los recursos
     for (int i=0; i<this->_recursos.size(); i++) {
+	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
+        this->_recursos.at(i)->draw(graphics);
     	graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
         this->_recursos.at(i)->draw(graphics);
     }

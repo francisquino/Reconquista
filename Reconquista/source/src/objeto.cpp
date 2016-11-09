@@ -127,7 +127,7 @@ void Objeto::gainHealth(int amount) {
 }
 
 
-void Objeto::modificarCantidadMaterial(std::string material, int cantidad) {
+void Objeto::modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int cantidad) {
 	if ((this->_materiales[material] += cantidad) < 0)
 		this->_materiales[material] = 0;
  }
@@ -146,8 +146,8 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
 	graphics.loadImage("content/sprites/Ayuntamientos.png");
 	this->setupAnimations();
     this->playAnimation("AyuntamientoInicial");
-    this->modificarCantidadMaterial("oro", 500);
-    this->modificarCantidadMaterial("madera", 800);
+    this->modificarCantidadMaterial(tipoMaterial::Oro, 500);
+    this->modificarCantidadMaterial(tipoMaterial::Madera, 800);
  }
 
  void Ayuntamiento::update(int elapsedTime) {
@@ -175,7 +175,7 @@ Mina::Mina(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad) :
 	graphics.loadImage("content/sprites/Recursos.png");
 	this->setupAnimations();
     this->playAnimation("MinaInicial");
-    this->modificarCantidadMaterial("oro", cantidad);
+    this->modificarCantidadMaterial(tipoMaterial::Oro, cantidad);
 }
 
 void Mina::update(int elapsedTime) {
@@ -203,7 +203,7 @@ Bosque::Bosque(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad) :
 	graphics.loadImage("content/sprites/Recursos.png");
 	this->setupAnimations();
     this->playAnimation("BosqueInicial");
-    this->modificarCantidadMaterial("madera", cantidad);
+    this->modificarCantidadMaterial(tipoMaterial::Madera, cantidad);
 }
 
 void Bosque::update(int elapsedTime) {

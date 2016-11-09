@@ -18,9 +18,14 @@ public:
     InfoUser(Graphics &graphics);
     void update(int elapsedTime);
     void draw(Graphics &graphics);
-    void drawAyto(Graphics &graphics);
 
-    Sprite* getIconoEntrenarCampesino() { return &this->_entrenarCampesino; };
+    //Dibujar iconos e informacion de Ayuntamiento
+    void drawAyuntamiento(Graphics &graphics);
+    Sprite* getIconoAytoEntrenarCampesino() { return &this->_aytoEntrenarCampesino; };
+
+    //Dibujar iconos e informacion de Campesino
+    void drawCampesino(Graphics &graphics);
+    Sprite* getIconoCampRecolectar() { return &this->_campRecolectar; };
 
 private:
     //Health sprites
@@ -28,11 +33,14 @@ private:
     Sprite _aytoCurrentHealthBar;
 
     //Recursos sprites
-    Sprite _maderaNumber;
-    Sprite _oroNumber;
+    Sprite _aytoMaderaNumber;
+    Sprite _aytoOroNumber;
 
-    //Acciones
-    Sprite _entrenarCampesino;
+    //Acciones Ayuntamiento
+    Sprite _aytoEntrenarCampesino;
+
+    //Acciones Campesino
+    Sprite _campRecolectar;
 };
 
 

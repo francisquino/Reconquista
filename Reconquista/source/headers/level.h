@@ -40,6 +40,7 @@ public:
     const sf::Vector2i getTileSize() const { return this->_tileSize; }
 
     Ayuntamiento _ayuntamiento;
+    std::vector<Objeto*> _recursos;
 
 private:
     std::string _mapName;
@@ -62,7 +63,6 @@ private:
 
     std::vector<Enemy*> _enemies;
 
-    std::vector<Objeto*> _recursos;
 
     /* void loadMap
      * Loads a map

@@ -20,6 +20,7 @@
 
 class Graphics;
 
+//Los distintos entes
 namespace tipoObjeto {
     enum TipoObjeto {
         Ayuntamiento,
@@ -30,6 +31,14 @@ namespace tipoObjeto {
         Caballero,
         NoDefinido
     };
+}
+
+//Diferentes recursos materiales
+namespace tipoMaterial {
+	enum TipoMaterial {
+		Oro,
+		Madera
+	};
 }
 
 class Objeto : public AnimatedSprite {
@@ -90,8 +99,8 @@ public:
 
     void gainHealth(int amount);
 
-    void modificarCantidadMaterial(std::string material, int cantidad);
-    int getCantidadMaterial(std::string material) { return this->_materiales[material];}
+    void modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int cantidad);
+    int getCantidadMaterial(tipoMaterial::TipoMaterial material) { return this->_materiales[material];}
 
     void sumarUnidad(Objeto* unidad);
 
@@ -112,7 +121,7 @@ protected:
     int _maxHealth;
     int _currentHealth;
 
-    std::map<std::string, int> _materiales;
+    std::map<tipoMaterial::TipoMaterial, int> _materiales;
 }; //class Objeto
 
 class Ayuntamiento : public Objeto {
@@ -173,6 +182,10 @@ public:
     void animationDone(std::string currentAnimation);
     void setupAnimations();
 
+    void setRecolectando(const bool recolectando) { this->_recolectando = recolectando; }
+    void setCantidadMaterialRecoleccion(const int cantidad, const tipoMaterial::TipoMaterial material) { this->_cantidadRecolectada += cantidad; this->_materialRecolectado = material; }
+    void setDestinoRecoleccion(Objeto* recurso) { this->_destinoRecoleccion = recurso; }
+
     /*
     void handleTileCollisions(std::vector<Rectangle> &others);
     void handleSlopeCollisions(std::vector<Slope> &others);
@@ -181,6 +194,12 @@ public:
     */
 
 private:
+    bool _recolectando;
+
+    int _cantidadRecolectada;
+    tipoMaterial::TipoMaterial _materialRecolectado;
+
+    Objeto* _destinoRecoleccion;
 
 }; //class Campesino
 

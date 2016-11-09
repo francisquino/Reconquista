@@ -31,7 +31,8 @@ Sprite destinoCruz;
 
 enum tipoCursor {
 	puntero,
-	lupa
+	lupa,
+	recolectar
 };
 
 tipoCursor _tipoCursor;
@@ -90,7 +91,7 @@ void Game::gameLoop() {
             //
             if (event.type == sf::Event::MouseMoved) {
             	starting_position = sf::Mouse::getPosition(graphics.getWindow());
-            	_tipoCursor = puntero;
+            	//_tipoCursor = puntero;
             	graphics.getWindow().setView(*graphics.getView(Juego));
             	//Si el ratón está sobre un objeto de la vista Juego, cambiar el cursor por una lupa
 				if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
@@ -139,6 +140,7 @@ void Game::gameLoop() {
 							}
             			}
 
+            			//Estamos sobre otro objeto
             			else {
 							//Recorrer las unidades del ayuntamiento
 							for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
@@ -157,6 +159,22 @@ void Game::gameLoop() {
             				this->_level._ayuntamiento.setSeleccionado(false);
             			}
 
+            		}
+            		//Cursor es Buscando recurso para recolectar y hay seleccionado un Campesino
+            		else if (_tipoCursor==recolectar && objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
+            			//Recorrer los recursos de este nivel
+						for (unsigned int i=0; i<this->_level._recursos.size(); i++) {
+							if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
+											this->_level._recursos.at(i)->getBoundingBox())) {
+								//El cursor está sobre un recurso. Fijarlo como destino para recolectar
+								//Hacemos Downcasting para poder trabajar con el ObjetoSeleccionado como un Campesino
+								dynamic_cast<Campesino*>(objetoSeleccionado)->setRecolectando(true);
+								dynamic_cast<Campesino*>(objetoSeleccionado)->setDestinoRecoleccion(this->_level._recursos.at(i));
+								printf("Empezamos a recolectar %i\n", this->_level._recursos.at(i)->getTipo());
+								break;
+							}
+						}
+						//Si no estamos sobre ningún recurso, parar la recoleccion.
             		}
 
                 	//Campesino seleccionado. Al pulsar con el boton izquierdo, fijamos un destino.
@@ -180,17 +198,6 @@ void Game::gameLoop() {
 									currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
 
 								//this->_player.handleSeleccion();
-								//objetoSeleccionado = *Player;
-								playerBox[0].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop());
-								playerBox[0].color = sf::Color::Green;
-								playerBox[1].position = sf::Vector2f(this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getTop());
-								playerBox[1].color = sf::Color::Green;
-								playerBox[2].position = sf::Vector2f(this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getBottom());
-								playerBox[2].color = sf::Color::Green;
-								playerBox[3].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getBottom());
-								playerBox[3].color = sf::Color::Green;
-								playerBox[4].position = sf::Vector2f(this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop());
-								playerBox[4].color = sf::Color::Green;
 							}
 						}*/
 
@@ -212,13 +219,14 @@ void Game::gameLoop() {
             	//
             	else if (input.dentroVistaInfo(starting_position)) {
 					graphics.getWindow().setView(*graphics.getView(Info));
-            		//Si el ayuntamiento está seleccionado:
+					//
+            		//Ayuntamiento seleccionado:
+					//
 					if (this->_level._ayuntamiento.getSeleccionado()) {
-					//if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Ayuntamiento) {
-                		//Pulsamos sobre la acción "Entrenar Campesino"
+                		//Si pulsamos sobre la acción "Entrenar Campesino"
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
-								this->_info.getIconoEntrenarCampesino()->getBoundingBox())) {
-
+								this->_info.getIconoAytoEntrenarCampesino()->getBoundingBox()))
+            			{
             				//Hacemos Upcasting, para que al llamar al update ejecute la función de Campesino y no la de Objeto.
                             Objeto* campesino = new Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento.getX()+32*this->_level._ayuntamiento._unidades.size(),
                             														this->_level._ayuntamiento.getY()-32));
@@ -228,7 +236,20 @@ void Game::gameLoop() {
             				//Si se puede, lanzar CrearCampesino para este Ayto.
             				//Borrar iconos acciones de ayto.
             				//Dibujar la barra de progreso de creación
-            			}
+            			} //Entrenar campesino
+
+            		}
+					//
+            		//Campesino seleccionado:
+					//
+					else if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
+                		//Si pulsamos sobre la acción "Recolectar"
+            			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+								this->_info.getIconoCampRecolectar()->getBoundingBox()))
+            			{
+
+            				_tipoCursor=recolectar;
+            			} //Recolectar
 
             		}
 
@@ -316,7 +337,11 @@ void Game::draw(Graphics& graphics) {
 
     //Si hemos seleccionado el ayuntamiento, dibujar su estado y las acciones en la vista Info
     if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Ayuntamiento) {
-    	this->_info.drawAyto(graphics);
+    	this->_info.drawAyuntamiento(graphics);
+    }
+    //Si hemos seleccionado un campesino, dibujar su estado y las acciones en la vista Info
+    else if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
+    	this->_info.drawCampesino(graphics);
     }
 
     this->_level.draw(graphics);
@@ -366,6 +391,9 @@ void Game::draw(Graphics& graphics) {
     	case lupa:
     	    graphics.getCursorLupa().draw(graphics, sf::Mouse::getPosition(graphics.getWindow()).x, sf::Mouse::getPosition(graphics.getWindow()).y);
     		break;
+    	case recolectar:
+    	    graphics.getCursorRecolectar().draw(graphics, sf::Mouse::getPosition(graphics.getWindow()).x, sf::Mouse::getPosition(graphics.getWindow()).y);
+    		break;
     }
     //this->_hud.draw(graphics);
 
@@ -379,11 +407,11 @@ void Game::update(float elapsedTime) {
     this->_info.update(elapsedTime);
 
 
-	if (isMouseBox && this->_level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
+    /*if (isMouseBox && this->_level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
 
 		//printf("Dibujar iconos de acciones del ayuntamiento en vista Info\n");
-	}
+	}*/
 
 
     /*

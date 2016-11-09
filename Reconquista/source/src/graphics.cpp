@@ -11,8 +11,9 @@ Graphics::Graphics() {
     _window->setMouseCursorVisible(false); // Ocultar cursor
 
     //Preparar cursor para el ratón
-    _spriteCursorPuntero = Sprite(*this, "content/sprites/Cursores.png", 16, 0, 16, 16, 0, 0);
     _spriteCursorLupa = Sprite(*this, "content/sprites/Cursores.png", 0, 0, 16, 16, 0, 0);
+    _spriteCursorPuntero = Sprite(*this, "content/sprites/Cursores.png", 16, 0, 16, 16, 0, 0);
+    _spriteCursorRecolectar = Sprite(*this, "content/sprites/Cursores.png", 32, 0, 16, 16, 0, 0);
 
     //Definir las vistas
     _vistaCompleta = _window->getView();

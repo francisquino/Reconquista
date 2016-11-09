@@ -64,11 +64,12 @@ public:
 
     Sprite getCursorPuntero() { return _spriteCursorPuntero; }
     Sprite getCursorLupa() { return _spriteCursorLupa; }
+    Sprite getCursorRecolectar() { return _spriteCursorRecolectar; }
 
 private:
     sf::RenderWindow* _window;
 
-    Sprite _spriteCursorPuntero, _spriteCursorLupa;
+    Sprite _spriteCursorPuntero, _spriteCursorLupa, _spriteCursorRecolectar;
 
     sf::View _vistaCompleta;
     sf::View _vistaJuego;
