@@ -17,6 +17,7 @@
 
 #include "animatedsprite.h"
 #include "globals.h"
+#include "estado.h"
 
 class Graphics;
 
@@ -37,7 +38,8 @@ namespace tipoObjeto {
 namespace tipoMaterial {
 	enum TipoMaterial {
 		Oro,
-		Madera
+		Madera,
+		NoDefinido
 	};
 }
 
@@ -51,35 +53,18 @@ public:
 
     const inline tipoObjeto::TipoObjeto getTipo() const { return this->_tipo; }
 
+    void cambiarEstado(Estado* nuevoEstado);
+
     virtual void update(int elapsedTime);
     virtual void draw(Graphics &graphics);
 
     virtual void animationDone(std::string currentAnimation);
     virtual void setupAnimations();
 
-    /* void moveLeft
-     * Moves the object left by -dx
-     */
     void moveLeft();
-
-    /* void moveRight
-     * Moves the object right by dx
-     */
     void moveRight();
-
-    /* void moveDown
-     * Moves the object down by dy
-     */
     void moveDown();
-
-    /* void moveUp
-     * Moves the object up by -dy
-     */
     void moveUp();
-
-    /* void stopMoving
-     * Stops moving the object
-     */
     void stopMoving();
 
     void setDestino(const float destinoX, const float destinoY);
@@ -96,11 +81,14 @@ public:
 
     const inline int getMaxHealth() const { return this->_maxHealth; }
     const inline int getCurrentHealth() const { return this->_currentHealth; }
-
     void gainHealth(int amount);
 
     void modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int cantidad);
+    bool cargaMaterialMaxima(tipoMaterial::TipoMaterial material) { return this->_materiales[material] >= this->_cargaMaxima[material]; }
     int getCantidadMaterial(tipoMaterial::TipoMaterial material) { return this->_materiales[material];}
+    //Esta funcion devuelve el tipo de material. Esta pensada para los recursos (mina y posque) y los recolectores
+    //(campesinos), que tienen un solo tipo de material en toda su vida activa o un momento dado (los campesinos)
+    virtual tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::NoDefinido; }
 
     void sumarUnidad(Objeto* unidad);
 
@@ -109,6 +97,8 @@ public:
 
 
 protected:
+    Estado* _estadoActual;
+
     tipoObjeto::TipoObjeto _tipo;
 
     float _dx, _dy, _destinoX, _destinoY;
@@ -122,6 +112,9 @@ protected:
     int _currentHealth;
 
     std::map<tipoMaterial::TipoMaterial, int> _materiales;
+
+    //Los campesinos pueden transportar una carga maxima
+    std::map<tipoMaterial::TipoMaterial, int> _cargaMaxima;
 }; //class Objeto
 
 class Ayuntamiento : public Objeto {
@@ -158,6 +151,8 @@ public:
     void animationDone(std::string currentAnimation);
     void setupAnimations();
 
+    tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::Oro; }
+
 }; //class Mina
 
 class Bosque : public Objeto {
@@ -169,6 +164,8 @@ public:
 
     void animationDone(std::string currentAnimation);
     void setupAnimations();
+
+    tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::Madera; }
 
 }; //class Bosque
 
@@ -182,25 +179,12 @@ public:
     void animationDone(std::string currentAnimation);
     void setupAnimations();
 
-    void setRecolectando(const bool recolectando) { this->_recolectando = recolectando; }
-    void setCantidadMaterialRecoleccion(const int cantidad, const tipoMaterial::TipoMaterial material) { this->_cantidadRecolectada += cantidad; this->_materialRecolectado = material; }
-    void setDestinoRecoleccion(Objeto* recurso) { this->_destinoRecoleccion = recurso; }
-
     /*
     void handleTileCollisions(std::vector<Rectangle> &others);
     void handleSlopeCollisions(std::vector<Slope> &others);
     void handleDoorCollisions(std::vector<Door> &others, Level &level, Graphics &graphics);
     void handleEnemyCollisions(std::vector<Enemy*> &others);
     */
-
-private:
-    bool _recolectando;
-
-    int _cantidadRecolectada;
-    tipoMaterial::TipoMaterial _materialRecolectado;
-
-    Objeto* _destinoRecoleccion;
-
 }; //class Campesino
 
 

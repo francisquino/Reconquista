@@ -7,6 +7,8 @@
 
 #include "objeto.h"
 #include "graphics.h"
+#include "estado.h"
+#include "estadosObjeto.h"
 
 namespace object_constants {
     const float WALK_SPEED = 0.2f;
@@ -25,6 +27,7 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
                     AnimatedSprite(graphics, filePath, sourceX, sourceY, width, height,
                             spawnPoint.x, spawnPoint.y, timeToUpdate),
 					_tipo(tipo),
+					_estadoActual(estadoInactivo::Instance()),
 					_dx(0),
 					_dy(0),
 					_destinoX(-1),
@@ -38,8 +41,24 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
             		_materiales()
 {}
 
+void Objeto::cambiarEstado(Estado* nuevoEstado) {
+	//Ambos estados son validos antes de intentar llamar a sus metodos
+	//assert (this->_estadoActual && nuevoEstado);
+	//Llamar al metodo salir del estado actual
+	this->_estadoActual->salir(this);
+	//Cambiar estado al nuevo estado
+	this->_estadoActual = nuevoEstado;
+	//Llamar al metodo entrar del nuevo estado
+	this->_estadoActual->entrar(this, this);
+}
+
 void Objeto::update(int elapsedTime) {
-	AnimatedSprite::update(elapsedTime);}
+	if (this->_estadoActual)
+	{
+		this->_estadoActual->ejecutar(this, this);
+	}
+	AnimatedSprite::update(elapsedTime);
+}
 
 void Objeto::draw(Graphics &graphics) {
 	//Si el objeto está seleccionado, dibujamos su BoundingBox

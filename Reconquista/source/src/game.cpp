@@ -8,6 +8,8 @@
 #include "graphics.h"
 #include "input.h"    //Lectura de eventos
 #include "objeto.h"
+#include "estado.h"
+#include "estadosObjeto.h"
 
 /* Game class
  * This class holds all information for our main game loop
@@ -168,8 +170,8 @@ void Game::gameLoop() {
 											this->_level._recursos.at(i)->getBoundingBox())) {
 								//El cursor está sobre un recurso. Fijarlo como destino para recolectar
 								//Hacemos Downcasting para poder trabajar con el ObjetoSeleccionado como un Campesino
-								dynamic_cast<Campesino*>(objetoSeleccionado)->setRecolectando(true);
-								dynamic_cast<Campesino*>(objetoSeleccionado)->setDestinoRecoleccion(this->_level._recursos.at(i));
+								//dynamic_cast<Campesino*>(objetoSeleccionado)->setRecolectando(true);
+								//dynamic_cast<Campesino*>(objetoSeleccionado)->setDestinoRecoleccion(this->_level._recursos.at(i));
 								printf("Empezamos a recolectar %i\n", this->_level._recursos.at(i)->getTipo());
 								break;
 							}
@@ -249,6 +251,7 @@ void Game::gameLoop() {
             			{
 
             				_tipoCursor=recolectar;
+            				objetoSeleccionado->cambiarEstado(estadoRecolectar::Instance());
             			} //Recolectar
 
             		}
