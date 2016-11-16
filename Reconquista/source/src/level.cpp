@@ -2,8 +2,8 @@
 #include "graphics.h"
 #include "globals.h"
 #include "utils.h"
-#include "player.h"
-#include "enemy.h"
+//#include "player.h"
+//#include "enemy.h"
 //#include "ayuntamiento.h"
 
 #include "tinyxml2.h"
@@ -132,7 +132,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 							int gid = pTile->IntAttribute("gid");
 							Tileset tls;
 							int closest = 0;
-							for (int i = 0; i < this->_tilesets.size(); i++) {
+							for (unsigned int i = 0; i < this->_tilesets.size(); i++) {
 								if (this->_tilesets[i].FirstGid <= gid) {
 									if (this->_tilesets[i].FirstGid > closest) {
 										closest = this->_tilesets[i].FirstGid;
@@ -167,7 +167,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 							//Build the actual tile and add it to the level's tile list
 							bool isAnimatedTile = false;
 							AnimatedTileInfo ati;
-							for (int i = 0; i < this->_animatedTileInfos.size(); i++) {
+							for (unsigned int i = 0; i < this->_animatedTileInfos.size(); i++) {
 								if (this->_animatedTileInfos.at(i).StartTileId == gid) {
 									ati = this->_animatedTileInfos.at(i);
 									isAnimatedTile = true;
@@ -176,7 +176,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 							}
 							if (isAnimatedTile == true) {
 								std::vector<sf::Vector2i> tilesetPositions;
-								for (int i = 0; i < ati.TileIds.size(); i++) {
+								for (unsigned int i = 0; i < ati.TileIds.size(); i++) {
 									tilesetPositions.push_back(this->getTilesetPosition(tls, ati.TileIds.at(i),
 											tileWidth, tileHeight));
 								}
@@ -337,7 +337,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                             Utils::split(ss.str(), pairs, ' ');
                             //Now we have each of the pairs. Loop through the list of pairs
                             //and split them into Vector2s and then store them in our points vector
-                            for (int i=0; i<pairs.size(); i++) {
+                            for (unsigned int i=0; i<pairs.size(); i++) {
                                 std::vector<std::string> ps;
                                 Utils::split(pairs.at(i), ps, ',');
                                 //points.push_back(sf::Vector2i(std::stoi(ps.at(0)), std::stoi(ps.at(1))));
@@ -346,7 +346,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 
                         }
 
-                        for(int i=0; i<points.size(); i+=2) {
+                        for(unsigned int i=0; i<points.size(); i+=2) {
                             /*this->_slopes.push_back(Slope(
                                     sf::Vector2f((p1.x + points.at(i<2 ? i : i-1).x) * globals::SPRITE_SCALE,
                                                  (p1.y + points.at(i<2 ? i : i-1).y) * globals::SPRITE_SCALE),
@@ -369,11 +369,11 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                         std::stringstream ss;
                         ss << name;
                         if(ss.str() == "ayuntamiento") {
-                            this->_ayuntamiento = Ayuntamiento(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+                            this->_ayuntamiento = new Ayuntamiento(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
                                     std::floor(y) * globals::SPRITE_SCALE));
                         }
-                        if(ss.str() == "campesino") {
-                            this->_ayuntamiento._unidades.push_back(new Campesino(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+                        else if(ss.str() == "campesino") {
+                            this->_ayuntamiento->_unidades.push_back(new Campesino(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
                                     std::floor(y) * globals::SPRITE_SCALE)));
                         }
 
@@ -448,6 +448,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                 }
             }
 
+            /*
             else if (ss.str() == "doors") {
                 XMLElement* pObject = pObjectGroup->FirstChildElement("object");
                 if (pObject != NULL){
@@ -507,7 +508,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                         pObject = pObject->NextSiblingElement("object");
                     }
                 }
-            }
+            }*/
 
             pObjectGroup = pObjectGroup->NextSiblingElement("objectgroup");
         }
@@ -515,10 +516,10 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 }
 
 void Level::update(int elapsedTime) {
-	this->_ayuntamiento.update(elapsedTime);
+	this->_ayuntamiento->update(elapsedTime);
 
-    for (unsigned int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
-        this->_ayuntamiento._unidades.at(i)->update(elapsedTime);
+    for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
+        this->_ayuntamiento->_unidades.at(i)->update(elapsedTime);
     }
 
     for (unsigned int i=0; i<this->_recursos.size(); i++) {
@@ -580,21 +581,21 @@ void Level::draw(Graphics &graphics) {
 
     //Dibujamos ayuntamiento en vista Minimapa
     graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
-	this->_ayuntamiento.draw(graphics);
+	this->_ayuntamiento->draw(graphics);
     //Dibujar ayuntamiento en vista Juego
     graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
-	this->_ayuntamiento.draw(graphics);
+	this->_ayuntamiento->draw(graphics);
 
 	//Dibujar las unidades del ayuntamiento.
-	for (unsigned int i=0; i<this->_ayuntamiento._unidades.size(); i++) {
+	for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
-		this->_ayuntamiento._unidades.at(i)->draw(graphics);
+		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
 	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
-		this->_ayuntamiento._unidades.at(i)->draw(graphics);
+		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
 	}
 
 	//Dibujar los recursos
-    for (int i=0; i<this->_recursos.size(); i++) {
+    for (unsigned int i=0; i<this->_recursos.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
         this->_recursos.at(i)->draw(graphics);
     	graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
@@ -613,7 +614,7 @@ void Level::draw(Graphics &graphics) {
 
 std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other) {
     std::vector<Rectangle> others;
-    for (int i=0; i<this->_collisionRects.size(); i++) {
+    for (unsigned int i=0; i<this->_collisionRects.size(); i++) {
         if (this->_collisionRects.at(i).collidesWith(other)) {
             others.push_back(this->_collisionRects.at(i));
         }
@@ -624,7 +625,7 @@ std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other) {
 /*
 std::vector<Slope> Level::checkSlopeCollisions(const Rectangle &other) {
     std::vector<Slope> others;
-    for (int i=0; i<this->_slopes.size(); i++) {
+    for (unsigned int i=0; i<this->_slopes.size(); i++) {
         if (this->_slopes.at(i).collidesWith(other)) {
             others.push_back(this->_slopes.at(i));
         }
@@ -634,7 +635,7 @@ std::vector<Slope> Level::checkSlopeCollisions(const Rectangle &other) {
 
 std::vector<Door> Level::checkDoorCollisions(const Rectangle &other) {
     std::vector<Door> others;
-    for (int i=0; i<this->_doorList.size(); i++) {
+    for (unsigned int i=0; i<this->_doorList.size(); i++) {
         if (this->_doorList.at(i).collidesWith(other)) {
             others.push_back(this->_doorList.at(i));
         }
@@ -644,7 +645,7 @@ std::vector<Door> Level::checkDoorCollisions(const Rectangle &other) {
 
 std::vector<Enemy*> Level::checkEnemyCollisions(const Rectangle &other) {
     std::vector<Enemy*> others;
-    for (int i=0; i<this->_enemies.size(); i++) {
+    for (unsigned int i=0; i<this->_enemies.size(); i++) {
         if (this->_enemies.at(i)->getBoundingBox().collidesWith(other)) {
             others.push_back(this->_enemies.at(i));
         }

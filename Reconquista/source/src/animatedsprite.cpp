@@ -12,6 +12,7 @@ AnimatedSprite::AnimatedSprite(Graphics &graphics, const std::string &filePath, 
             float posX, float posY, float timeToUpdate) :
                 Sprite(graphics, filePath, sourceX, sourceY, width, height, posX, posY),
                 _frameIndex(0),
+                _timeElapsed(0),
                 _timeToUpdate(timeToUpdate),
                 _visible(true),
                 _currentAnimationOnce(false),

@@ -8,20 +8,25 @@
 #ifndef ESTADO_H
 #define ESTADO_H
 
-class Objeto;
+struct Telegrama;
 
+template <class tipoEntidad>
 class Estado {
-public:
-	virtual ~Estado(){}
+	public:
+		virtual ~Estado(){}
 
-	//Se ejecuta al entrar en un estado
-	virtual void entrar(Objeto*, Objeto*)=0;
+		//Se ejecuta al entrar en un estado
+		virtual void entrar(tipoEntidad*)=0;
 
-	//Se llama por la funcion update del objeto cada paso de update
-	virtual void ejecutar(Objeto*, Objeto*)=0;
+		//Se llama por la funcion update del objeto cada paso de update
+		virtual void ejecutar(tipoEntidad*)=0;
 
-	//Se ejecuta al salir de un estado
-	virtual void salir(Objeto*)=0;
+		//Se ejecuta al salir de un estado
+		virtual void salir(tipoEntidad*)=0;
+
+		//this executes if the agent receives a message from the
+		//message dispatcher
+		virtual bool OnMessage(tipoEntidad*, const Telegrama&)=0;
 };
 
 

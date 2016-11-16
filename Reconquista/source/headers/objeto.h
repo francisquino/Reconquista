@@ -17,7 +17,12 @@
 
 #include "animatedsprite.h"
 #include "globals.h"
-#include "estado.h"
+#include "maquinaestados.h"
+//#include "telegrama.h"
+
+template <class tipoEntidad> class Estado;
+
+struct Telegrama;
 
 class Graphics;
 
@@ -44,147 +49,182 @@ namespace tipoMaterial {
 }
 
 class Objeto : public AnimatedSprite {
-public:
-    Objeto();
-    Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string filePath, int sourceX, int sourceY,
-            int width, int height, sf::Vector2i spawnPoint, int maxHealth, int timeToUpdate);
+	public:
+		Objeto();
+		Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string filePath, int sourceX, int sourceY,
+				int width, int height, sf::Vector2i spawnPoint, int maxHealth, int timeToUpdate);
+		virtual ~Objeto() {}
 
-    virtual ~Objeto() {}
+		const inline tipoObjeto::TipoObjeto getTipo() const { return this->_tipo; }
 
-    const inline tipoObjeto::TipoObjeto getTipo() const { return this->_tipo; }
+		virtual void update(int elapsedTime);
+		virtual void draw(Graphics &graphics);
 
-    void cambiarEstado(Estado* nuevoEstado);
+		//all entities can communicate using messages. They are sent
+		//using the MessageDispatcher singleton class
+		virtual bool manejarMensaje(const Telegrama& msg)=0;
 
-    virtual void update(int elapsedTime);
-    virtual void draw(Graphics &graphics);
+		virtual void animationDone(std::string currentAnimation);
+		virtual void setupAnimations();
 
-    virtual void animationDone(std::string currentAnimation);
-    virtual void setupAnimations();
+		void moveLeft();
+		void moveRight();
+		void moveDown();
+		void moveUp();
+		void stopMoving();
 
-    void moveLeft();
-    void moveRight();
-    void moveDown();
-    void moveUp();
-    void stopMoving();
+		void setDestino(const float destinoX, const float destinoY);
+		const float getDestinoX() const { return this->_destinoX; }
+		const float getDestinoY() const { return this->_destinoY; }
 
-    void setDestino(const float destinoX, const float destinoY);
-    const float getDestinoX() const { return this->_destinoX; }
-    const float getDestinoY() const { return this->_destinoY; }
+		bool destinoAlcanzado() const { return this->_destinoAlcanzado; }
+		void setDestinoAlcanzado(const bool destino);
 
-    bool destinoAlcanzado() const { return this->_destinoAlcanzado; }
-    void setDestinoAlcanzado(const bool destino);
+		bool getSeleccionado() const { return this->_seleccionado; }
+		void setSeleccionado(const bool seleccionado);
 
-    bool getSeleccionado() const { return this->_seleccionado; }
-    void setSeleccionado(const bool seleccionado);
+		bool checkColision(const Rectangle &other);
 
-    bool checkColision(const Rectangle &other);
+		const inline int getMaxHealth() const { return this->_maxHealth; }
+		const inline int getCurrentHealth() const { return this->_currentHealth; }
+		void gainHealth(int amount);
 
-    const inline int getMaxHealth() const { return this->_maxHealth; }
-    const inline int getCurrentHealth() const { return this->_currentHealth; }
-    void gainHealth(int amount);
+		void modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int cantidad);
+		bool cargaMaterialMaxima(tipoMaterial::TipoMaterial material) { return this->_materiales[material] >= this->_cargaMaxima[material]; }
+		int getCantidadMaterial(tipoMaterial::TipoMaterial material) { return this->_materiales[material];}
+		//Esta funcion devuelve el tipo de material. Esta pensada para los recursos (mina y posque) y los recolectores
+		//(campesinos), que tienen un solo tipo de material en toda su vida activa o un momento dado (los campesinos)
+		virtual tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::NoDefinido; }
 
-    void modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int cantidad);
-    bool cargaMaterialMaxima(tipoMaterial::TipoMaterial material) { return this->_materiales[material] >= this->_cargaMaxima[material]; }
-    int getCantidadMaterial(tipoMaterial::TipoMaterial material) { return this->_materiales[material];}
-    //Esta funcion devuelve el tipo de material. Esta pensada para los recursos (mina y posque) y los recolectores
-    //(campesinos), que tienen un solo tipo de material en toda su vida activa o un momento dado (los campesinos)
-    virtual tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::NoDefinido; }
-
-    void sumarUnidad(Objeto* unidad);
-
-
-    std::vector<Objeto*> _unidades;
+		void sumarUnidad(Objeto* unidad);
 
 
-protected:
-    Estado* _estadoActual;
+		std::vector<Objeto*> _unidades;
 
-    tipoObjeto::TipoObjeto _tipo;
 
-    float _dx, _dy, _destinoX, _destinoY;
+	protected:
+		tipoObjeto::TipoObjeto _tipo;
 
-    Direction _facing;
+		float _dx, _dy, _destinoX, _destinoY;
 
-    bool _destinoAlcanzado;
-    bool _seleccionado;
+		Direction _facing;
 
-    int _maxHealth;
-    int _currentHealth;
+		bool _destinoAlcanzado;
+		bool _seleccionado;
 
-    std::map<tipoMaterial::TipoMaterial, int> _materiales;
+		int _maxHealth;
+		int _currentHealth;
 
-    //Los campesinos pueden transportar una carga maxima
-    std::map<tipoMaterial::TipoMaterial, int> _cargaMaxima;
+		std::map<tipoMaterial::TipoMaterial, int> _materiales;
+
+		//Los campesinos pueden transportar una carga maxima
+		std::map<tipoMaterial::TipoMaterial, int> _cargaMaxima;
 }; //class Objeto
 
 class Ayuntamiento : public Objeto {
-public:
-	Ayuntamiento();
-	Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint);
-    void update(int elapsedTime);
-    void draw(Graphics &graphics);
+	public:
+		Ayuntamiento();
+		Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint);
+		~Ayuntamiento(){delete this->_apMaquinaEstados;}
 
-    void animationDone(std::string currentAnimation);
-    void setupAnimations();
+		void update(int elapsedTime);
+		void draw(Graphics &graphics);
+		virtual bool manejarMensaje(const Telegrama& msg);
 
+		void animationDone(std::string currentAnimation);
+		void setupAnimations();
+
+		maquinaEstados<Ayuntamiento>* GetFSM() const{ return this->_apMaquinaEstados; }
+	private:
+		//Instancia de la clase Maquina de Estados
+		maquinaEstados<Ayuntamiento>* _apMaquinaEstados; //Ayuntamiento puntero maquina de estados
 }; //class Ayuntamiento
 
 class Barracones : public Objeto {
-public:
-	Barracones();
-	Barracones(Graphics &graphics, sf::Vector2i spawnPoint);
-    void update(int elapsedTime);
-    void draw(Graphics &graphics);
+	public:
+		Barracones();
+		Barracones(Graphics &graphics, sf::Vector2i spawnPoint);
+		~Barracones(){delete this->_bapMaquinaEstados;}
 
-    void animationDone(std::string currentAnimation);
-    void setupAnimations();
+		void update(int elapsedTime);
+		void draw(Graphics &graphics);
+		bool manejarMensaje(const Telegrama& msg);
 
+		void animationDone(std::string currentAnimation);
+		void setupAnimations();
+
+		maquinaEstados<Barracones>* GetFSM() const{ return this->_bapMaquinaEstados; }
+	private:
+		//Instancia de la clase Maquina de Estados
+		maquinaEstados<Barracones>* _bapMaquinaEstados; //Barracones puntero maquina de estados
 }; //class Barracones
 
 class Mina : public Objeto {
-public:
-	Mina();
-	Mina(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad);
-    void update(int elapsedTime);
-    void draw(Graphics &graphics);
+	public:
+		Mina();
+		Mina(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad);
+		~Mina(){delete this->_mpMaquinaEstados;}
 
-    void animationDone(std::string currentAnimation);
-    void setupAnimations();
+		void update(int elapsedTime);
+		void draw(Graphics &graphics);
+		bool manejarMensaje(const Telegrama& msg);
 
-    tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::Oro; }
+		void animationDone(std::string currentAnimation);
+		void setupAnimations();
 
+		tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::Oro; }
+
+		maquinaEstados<Mina>* GetFSM() const{ return this->_mpMaquinaEstados; }
+	private:
+		//Instancia de la clase Maquina de Estados
+		maquinaEstados<Mina>* _mpMaquinaEstados; //Mina puntero maquina de estados
 }; //class Mina
 
 class Bosque : public Objeto {
-public:
-	Bosque();
-	Bosque(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad);
-    void update(int elapsedTime);
-    void draw(Graphics &graphics);
+	public:
+		Bosque();
+		Bosque(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad);
+		~Bosque(){delete this->_bpMaquinaEstados;}
 
-    void animationDone(std::string currentAnimation);
-    void setupAnimations();
+		void update(int elapsedTime);
+		void draw(Graphics &graphics);
+		bool manejarMensaje(const Telegrama& msg);
 
-    tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::Madera; }
+		void animationDone(std::string currentAnimation);
+		void setupAnimations();
 
+		tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::Madera; }
+
+		maquinaEstados<Bosque>* GetFSM() const{ return this->_bpMaquinaEstados; }
+	private:
+		//Instancia de la clase Maquina de Estados
+		maquinaEstados<Bosque>* _bpMaquinaEstados; //Bosque puntero maquina de estados
 }; //class Bosque
 
 class Campesino : public Objeto {
-public:
-    Campesino();
-    Campesino(Graphics &graphics, sf::Vector2i spawnPoint);
-    void update(int elapsedTime);
-    void draw(Graphics &graphics);
+	public:
+		Campesino();
+		Campesino(Graphics &graphics, sf::Vector2i spawnPoint);
+		~Campesino(){delete this->_cpMaquinaEstados;}
 
-    void animationDone(std::string currentAnimation);
-    void setupAnimations();
+		void update(int elapsedTime);
+		void draw(Graphics &graphics);
+		bool manejarMensaje(const Telegrama& msg);
 
-    /*
-    void handleTileCollisions(std::vector<Rectangle> &others);
-    void handleSlopeCollisions(std::vector<Slope> &others);
-    void handleDoorCollisions(std::vector<Door> &others, Level &level, Graphics &graphics);
-    void handleEnemyCollisions(std::vector<Enemy*> &others);
-    */
+		void animationDone(std::string currentAnimation);
+		void setupAnimations();
+
+		/*
+		void handleTileCollisions(std::vector<Rectangle> &others);
+		void handleSlopeCollisions(std::vector<Slope> &others);
+		void handleDoorCollisions(std::vector<Door> &others, Level &level, Graphics &graphics);
+		void handleEnemyCollisions(std::vector<Enemy*> &others);
+		*/
+
+		maquinaEstados<Campesino>* GetFSM() const{ return this->_cpMaquinaEstados; }
+	private:
+		//Instancia de la clase Maquina de Estados
+		maquinaEstados<Campesino>* _cpMaquinaEstados; //Campesino puntero maquina de estados
 }; //class Campesino
 
 

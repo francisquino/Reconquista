@@ -8,8 +8,9 @@
 #include "graphics.h"
 #include "input.h"    //Lectura de eventos
 #include "objeto.h"
-#include "estado.h"
-#include "estadosObjeto.h"
+#include "telegrama.h"
+#include "messagedispatcher.h"
+#include "tipomensaje.h"
 
 /* Game class
  * This class holds all information for our main game loop
@@ -56,15 +57,15 @@ void Game::gameLoop() {
     this->_level = Level("MapReconquista1", graphics);
     //this->_player = Player(graphics, this->_level.getPlayerSpawnPoint());
     this->_info = InfoUser(graphics);
-
     //this->_hud = HUD(graphics, this->_player);
+
 
     sf::Int32 LAST_UPDATE_TIME = this->clock.getElapsedTime().asMilliseconds();
     //std::cout << "LAST_UPDATE_TIME " << LAST_UPDATE_TIME << "\n";
 
     //Start the game loop
     while(true) {
-        input.beginNewFrame();
+    	input.beginNewFrame();
 
         graphics.getWindow().setView(*graphics.getView(Completa));
         // Manejamos los eventos
@@ -97,15 +98,15 @@ void Game::gameLoop() {
             	graphics.getWindow().setView(*graphics.getView(Juego));
             	//Si el ratón está sobre un objeto de la vista Juego, cambiar el cursor por una lupa
 				if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-										this->_level._ayuntamiento.getBoundingBox())) {
+										this->_level._ayuntamiento->getBoundingBox())) {
             		_tipoCursor = lupa;
             	}
 				else
 				{
 					//Recorrer las unidades del ayuntamiento
-					for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
+					for (unsigned int i=0; i<this->_level._ayuntamiento->_unidades.size(); i++) {
 						if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-										this->_level._ayuntamiento._unidades.at(i)->getBoundingBox())) {
+										this->_level._ayuntamiento->_unidades.at(i)->getBoundingBox())) {
 							_tipoCursor = lupa;
 							break;
 						}
@@ -130,35 +131,35 @@ void Game::gameLoop() {
             			graphics.getWindow().setView(*graphics.getView(Juego));
             			//Estamos sobre Ayuntamiento
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-                    							this->_level._ayuntamiento.getBoundingBox())) {
+                    							this->_level._ayuntamiento->getBoundingBox())) {
             				//Mostrar en vista Info los datos del Ayuntamiento y Acciones
 
-            				objetoSeleccionado = &this->_level._ayuntamiento;
+            				objetoSeleccionado = this->_level._ayuntamiento;
             				objetoSeleccionado->setSeleccionado(true);
 
             				//El resto de objetos se deseleccionan
-							for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
-								this->_level._ayuntamiento._unidades.at(i)->setSeleccionado(false);
+							for (unsigned int i=0; i<this->_level._ayuntamiento->_unidades.size(); i++) {
+								this->_level._ayuntamiento->_unidades.at(i)->setSeleccionado(false);
 							}
             			}
 
             			//Estamos sobre otro objeto
             			else {
 							//Recorrer las unidades del ayuntamiento
-							for (unsigned int i=0; i<this->_level._ayuntamiento._unidades.size(); i++) {
+							for (unsigned int i=0; i<this->_level._ayuntamiento->_unidades.size(); i++) {
 								if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-												this->_level._ayuntamiento._unidades.at(i)->getBoundingBox())) {
-		            				objetoSeleccionado = this->_level._ayuntamiento._unidades.at(i);
+												this->_level._ayuntamiento->_unidades.at(i)->getBoundingBox())) {
+		            				objetoSeleccionado = this->_level._ayuntamiento->_unidades.at(i);
 		            				objetoSeleccionado->setSeleccionado(true);
 									break;
 								}
 								//El resto de unidades se deseleccionan
 								else {
-		            				this->_level._ayuntamiento._unidades.at(i)->setSeleccionado(false);
+		            				this->_level._ayuntamiento->_unidades.at(i)->setSeleccionado(false);
 								}
 							}
 							//El ayuntamiento también se deselecciona
-            				this->_level._ayuntamiento.setSeleccionado(false);
+            				this->_level._ayuntamiento->setSeleccionado(false);
             			}
 
             		}
@@ -224,15 +225,15 @@ void Game::gameLoop() {
 					//
             		//Ayuntamiento seleccionado:
 					//
-					if (this->_level._ayuntamiento.getSeleccionado()) {
+					if (this->_level._ayuntamiento->getSeleccionado()) {
                 		//Si pulsamos sobre la acción "Entrenar Campesino"
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
 								this->_info.getIconoAytoEntrenarCampesino()->getBoundingBox()))
             			{
             				//Hacemos Upcasting, para que al llamar al update ejecute la función de Campesino y no la de Objeto.
-                            Objeto* campesino = new Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento.getX()+32*this->_level._ayuntamiento._unidades.size(),
-                            														this->_level._ayuntamiento.getY()-32));
-            				this->_level._ayuntamiento.sumarUnidad(campesino);
+                            Objeto* campesino = new Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento->getX()+32*this->_level._ayuntamiento->_unidades.size(),
+                            														this->_level._ayuntamiento->getY()-32));
+            				this->_level._ayuntamiento->sumarUnidad(campesino);
 
             				//Comprobar que cumnplimos con requisitos (recursos)
             				//Si se puede, lanzar CrearCampesino para este Ayto.
@@ -251,7 +252,13 @@ void Game::gameLoop() {
             			{
 
             				_tipoCursor=recolectar;
-            				objetoSeleccionado->cambiarEstado(estadoRecolectar::Instance());
+
+            				//Enviamos un mensaje al Campesino para que entre en estado de recolectar
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
+            										NULL,				 //Objeto* sender
+													objetoSeleccionado,   //Objeto* recipient
+													_msjRecolectarRecurso,//the message
+													NULL);  //Informacion extra
             			} //Recolectar
 
             		}
@@ -291,14 +298,12 @@ void Game::gameLoop() {
         if (input.wasKeyPressed(sf::Keyboard::Escape) == true) {
             return;
         }
-        else if (input.isKeyHeld(sf::Keyboard::Left) == true) {
+        /*else if (input.isKeyHeld(sf::Keyboard::Left) == true) {
             this->_player.moveLeft();
         }
         else if (input.isKeyHeld(sf::Keyboard::Right) == true) {
             this->_player.moveRight();
         }
-
-        /*
         if (input.isKeyHeld(sf::Keyboard::Up) == true) {
             this->_player.lookUp();
         }
@@ -317,10 +322,11 @@ void Game::gameLoop() {
         if (input.isKeyHeld(sf::Keyboard::Z) == true) {
             this->_player.jump();
         }
-        */
+
         if (!input.isKeyHeld(sf::Keyboard::Left) && !input.isKeyHeld(sf::Keyboard::Right)) {
             this->_player.stopMoving();
         }
+        */
 
         const sf::Int32 CURRENT_TIME_MS = clock.getElapsedTime().asMilliseconds();
         //std::cout << "CURRENT_TIME_MS " << CURRENT_TIME_MS << "\n";
@@ -365,7 +371,7 @@ void Game::draw(Graphics& graphics) {
     //Centrar vista Juego según la posición del ayuntamiento inicialmente, luego según el objeto seleccionado
     sf::Vector2f position(0, 0);
     if (objetoSeleccionado==NULL)
-    	position = sf::Vector2f(this->_level._ayuntamiento.getX(), this->_level._ayuntamiento.getY());
+    	position = sf::Vector2f(this->_level._ayuntamiento->getX(), this->_level._ayuntamiento->getY());
     else
     	position = sf::Vector2f(objetoSeleccionado->getX(), objetoSeleccionado->getY());
     //Obtener el punto medio de _vistaJuego
@@ -404,11 +410,10 @@ void Game::draw(Graphics& graphics) {
 }
 
 void Game::update(float elapsedTime) {
-
     //this->_player.update(elapsedTime);
+
 	this->_level.update(elapsedTime);
     this->_info.update(elapsedTime);
-
 
     /*if (isMouseBox && this->_level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
@@ -440,4 +445,8 @@ void Game::update(float elapsedTime) {
         this->_player.handleEnemyCollisions(otherEnemies);
     }
     */
+
+    //dispatch any delayed messages
+    Dispatcher->DispatchDelayedMessages();
+
 }

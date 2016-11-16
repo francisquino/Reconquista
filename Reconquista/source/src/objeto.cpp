@@ -7,8 +7,11 @@
 
 #include "objeto.h"
 #include "graphics.h"
-#include "estado.h"
-#include "estadosObjeto.h"
+#include "maquinaestados.h"
+#include "estadosayuntamiento.h"
+#include "estadosmina.h"
+#include "estadosbosque.h"
+#include "estadoscampesino.h"
 
 namespace object_constants {
     const float WALK_SPEED = 0.2f;
@@ -27,7 +30,6 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
                     AnimatedSprite(graphics, filePath, sourceX, sourceY, width, height,
                             spawnPoint.x, spawnPoint.y, timeToUpdate),
 					_tipo(tipo),
-					_estadoActual(estadoInactivo::Instance()),
 					_dx(0),
 					_dy(0),
 					_destinoX(-1),
@@ -41,22 +43,7 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
             		_materiales()
 {}
 
-void Objeto::cambiarEstado(Estado* nuevoEstado) {
-	//Ambos estados son validos antes de intentar llamar a sus metodos
-	//assert (this->_estadoActual && nuevoEstado);
-	//Llamar al metodo salir del estado actual
-	this->_estadoActual->salir(this);
-	//Cambiar estado al nuevo estado
-	this->_estadoActual = nuevoEstado;
-	//Llamar al metodo entrar del nuevo estado
-	this->_estadoActual->entrar(this, this);
-}
-
 void Objeto::update(int elapsedTime) {
-	if (this->_estadoActual)
-	{
-		this->_estadoActual->ejecutar(this, this);
-	}
 	AnimatedSprite::update(elapsedTime);
 }
 
@@ -81,6 +68,8 @@ void Objeto::draw(Graphics &graphics) {
 
     AnimatedSprite::draw(graphics, this->_x, this->_y);
 }
+
+bool Objeto::manejarMensaje(const Telegrama& msg) {}
 
 void Objeto::animationDone(std::string currentAnimation) {}
 
@@ -167,14 +156,23 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
     this->playAnimation("AyuntamientoInicial");
     this->modificarCantidadMaterial(tipoMaterial::Oro, 500);
     this->modificarCantidadMaterial(tipoMaterial::Madera, 800);
+
+	//Inicializar la maquina de estados
+	this->_apMaquinaEstados = new maquinaEstados<Ayuntamiento>(this);
+	this->_apMaquinaEstados->setEstadoActual(ayuntamientoEstadoInactivo::Instance());
  }
 
  void Ayuntamiento::update(int elapsedTime) {
 	 Objeto::update(elapsedTime);
+	 this->_apMaquinaEstados->update();
  }
 
  void Ayuntamiento::draw(Graphics &graphics) {
     Objeto::draw(graphics);
+ }
+
+ bool Ayuntamiento::manejarMensaje(const Telegrama& msg) {
+	 return _apMaquinaEstados->manejarMensaje(msg);
  }
 
  void Ayuntamiento::animationDone(std::string currentAnimation) {
@@ -195,14 +193,25 @@ Mina::Mina(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad) :
 	this->setupAnimations();
     this->playAnimation("MinaInicial");
     this->modificarCantidadMaterial(tipoMaterial::Oro, cantidad);
+
+	//Inicializar la maquina de estados
+	this->_mpMaquinaEstados = new maquinaEstados<Mina>(this);
+	this->_mpMaquinaEstados->setEstadoActual(minaEstadoInactivo::Instance());
 }
 
 void Mina::update(int elapsedTime) {
 	 Objeto::update(elapsedTime);
+
+	 this->_mpMaquinaEstados->update();
 }
 
 void Mina::draw(Graphics &graphics) {
     Objeto::draw(graphics);
+}
+
+bool Mina::manejarMensaje(const Telegrama& msg)
+{
+	 return _mpMaquinaEstados->manejarMensaje(msg);
 }
 
 void Mina::animationDone(std::string currentAnimation) {
@@ -223,14 +232,24 @@ Bosque::Bosque(Graphics &graphics, sf::Vector2i spawnPoint, int cantidad) :
 	this->setupAnimations();
     this->playAnimation("BosqueInicial");
     this->modificarCantidadMaterial(tipoMaterial::Madera, cantidad);
+
+	//Inicializar la maquina de estados
+	this->_bpMaquinaEstados = new maquinaEstados<Bosque>(this);
+	this->_bpMaquinaEstados->setEstadoActual(bosqueEstadoInactivo::Instance());
 }
 
 void Bosque::update(int elapsedTime) {
 	 Objeto::update(elapsedTime);
+	 this->_bpMaquinaEstados->update();
 }
 
 void Bosque::draw(Graphics &graphics) {
     Objeto::draw(graphics);
+}
+
+bool Bosque::manejarMensaje(const Telegrama& msg)
+{
+	 return _bpMaquinaEstados->manejarMensaje(msg);
 }
 
 void Bosque::animationDone(std::string currentAnimation) {
@@ -240,16 +259,21 @@ void Bosque::setupAnimations() {
     this->addAnimation(1, 1, 0, "BosqueInicial", 16, 16, sf::Vector2i(0,0));
 }
 
- //Clase Campesino
- Campesino::Campesino() {}
+//Clase Campesino
+Campesino::Campesino() {}
 
- Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
+Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
  	Objeto(graphics, tipoObjeto::Campesino, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint, 3, 100)
- {
-     graphics.loadImage("content/sprites/Tile-set-Toen's Medieval Strategy.png");
-     this->setupAnimations();
-     this->playAnimation("IdleRight");
- }
+{
+	graphics.loadImage("content/sprites/Tile-set-Toen's Medieval Strategy.png");
+	this->setupAnimations();
+	this->playAnimation("IdleRight");
+
+	//Inicializar la maquina de estados
+	this->_cpMaquinaEstados = new maquinaEstados<Campesino>(this);
+	this->_cpMaquinaEstados->setEstadoActual(campesinoEstadoInactivo::Instance());
+	this->_cpMaquinaEstados->setEstadoGlobal(campesinoEstadoGlobal::Instance());
+}
 
  void Campesino::update(int elapsedTime) {
 	//Si hay un destino fijado, movernos hacia él.
@@ -283,10 +307,17 @@ void Bosque::setupAnimations() {
 	this->_y += this->_dy * elapsedTime;
 
 	Objeto::update(elapsedTime);
+
+	this->_cpMaquinaEstados->update();
  }
 
  void Campesino::draw(Graphics &graphics) {
     Objeto::draw(graphics);
+ }
+
+ bool Campesino::manejarMensaje(const Telegrama& msg)
+ {
+	 return _cpMaquinaEstados->manejarMensaje(msg);
  }
 
  void Campesino::animationDone(std::string currentAnimation) {}

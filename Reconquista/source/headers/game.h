@@ -11,7 +11,7 @@
 #include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "player.h"
+//#include "player.h"
 #include "level.h"
 #include "infouser.h"
 #include "graphics.h"
@@ -27,12 +27,10 @@ private:
     void draw(Graphics &graphics);
     void update(float elapsedTime);
 
-    Player _player;
+    //Player _player;
 
     Level _level;
-
     InfoUser _info;
-
     Graphics _graphics;
 };
 
