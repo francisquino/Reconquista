@@ -5,9 +5,11 @@
  *      Author: francis
  */
 
+#include <SFML/Graphics.hpp>
+
+#include "tipomensaje.h"
 #include "messagedispatcher.h"
 #include "objeto.h"
-#include <SFML/Graphics.hpp>
 
 using std::set;
 
@@ -35,7 +37,7 @@ void MessageDispatcher::Discharge(Objeto* pReceptor, const Telegrama& telegram)
 	{
 		//telegram could not be handled
 		#ifdef SHOW_MESSAGING_INFO
-		std::cout << "Message not handled";
+		std::cout << " Message not handled";
 		#endif
 	}
 }
@@ -56,7 +58,7 @@ void MessageDispatcher::DispatchMsg(double       delay,
 	if (pReceiver == NULL)
 	{
 		#ifdef SHOW_MESSAGING_INFO
-		std::cout << "\nWarning! No Receiver found " << pReceiver << "";
+		std::cout << "\nWarning! No Receiver found " << pReceiver << "\n";
 		#endif
 
 		return;
@@ -70,7 +72,7 @@ void MessageDispatcher::DispatchMsg(double       delay,
 	{
 		#ifdef SHOW_MESSAGING_INFO
 		std::cout << "\nTelegram dispatched at time: " << this->msgClock.getElapsedTime().asMilliseconds()
-        				 << " by " << pSender << " for " << pReceiver << ". Msg is " << msg << "";
+        				 << " by " << pSender << " for " << pReceiver << ". Msg is " << msjToStr(msg) << "\n";
 		#endif
 
 		//send the telegram to the recipient
@@ -89,7 +91,7 @@ void MessageDispatcher::DispatchMsg(double       delay,
 
 		#ifdef SHOW_MESSAGING_INFO
 		std::cout << "\nDelayed telegram from " << pSender << " recorded at time "
-				<< this->msgClock.getElapsedTime().asMilliseconds() << " for " << pReceiver << ". Msg is " << msg << "";
+				<< this->msgClock.getElapsedTime().asMilliseconds() << " for " << pReceiver << ". Msg is " << msg << "\n";
 		#endif
 	}
 }

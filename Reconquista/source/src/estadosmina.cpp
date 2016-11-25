@@ -46,8 +46,8 @@ void minaEstadoInactivo::entrar(Mina* pMina) {
 }
 
 void minaEstadoInactivo::ejecutar(Mina* pMina) {
-	std::cout << "\nObjeto tipo " << pMina->getTipo() << ": "
-	<< "No hace nada";
+	//std::cout << "\nObjeto tipo " << pMina->getTipo() << ": "
+	//<< "No hace nada";
 }
 
 void minaEstadoInactivo::salir(Mina* pMina) {

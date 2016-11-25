@@ -18,13 +18,13 @@
 #include "animatedsprite.h"
 #include "globals.h"
 #include "maquinaestados.h"
-//#include "telegrama.h"
 
 template <class tipoEntidad> class Estado;
 
 struct Telegrama;
 
 class Graphics;
+class Level;
 
 //Los distintos entes
 namespace tipoObjeto {
@@ -34,19 +34,49 @@ namespace tipoObjeto {
         Mina,
         Bosque,
         Campesino,
-        Caballero,
-        NoDefinido
+        Caballero
     };
+}
+
+
+inline std::string tipoObjetoToStr(tipoObjeto::TipoObjeto tObj)
+{
+	switch (tObj)
+	{
+	case tipoObjeto::Ayuntamiento:
+		return "Ayuntamiento";
+	case tipoObjeto::Barracones:
+		return "Barracones";
+	case tipoObjeto::Mina:
+		return "Mina";
+	case tipoObjeto::Bosque:
+		return "Bosque";
+	case tipoObjeto::Campesino:
+		return "Campesino";
+	case tipoObjeto::Caballero:
+		return "Caballero";
+	}
 }
 
 //Diferentes recursos materiales
 namespace tipoMaterial {
 	enum TipoMaterial {
 		Oro,
-		Madera,
-		NoDefinido
+		Madera
 	};
 }
+
+inline std::string materialToStr(tipoMaterial::TipoMaterial mat)
+{
+	switch (mat)
+	{
+		case tipoMaterial::Oro:
+			return "Oro";
+		case tipoMaterial::Madera:
+			return "Madera";
+	}
+}
+
 
 class Objeto : public AnimatedSprite {
 	public:
@@ -77,30 +107,28 @@ class Objeto : public AnimatedSprite {
 		const float getDestinoX() const { return this->_destinoX; }
 		const float getDestinoY() const { return this->_destinoY; }
 
-		bool destinoAlcanzado() const { return this->_destinoAlcanzado; }
-		void setDestinoAlcanzado(const bool destino);
-
 		bool getSeleccionado() const { return this->_seleccionado; }
 		void setSeleccionado(const bool seleccionado);
 
 		bool checkColision(const Rectangle &other);
+		bool chocaConObjeto(Objeto* pObjeto);
+		Objeto* chocaConAlgunObjeto();
 
 		const inline int getMaxHealth() const { return this->_maxHealth; }
 		const inline int getCurrentHealth() const { return this->_currentHealth; }
 		void gainHealth(int amount);
 
 		void modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int cantidad);
-		bool cargaMaterialMaxima(tipoMaterial::TipoMaterial material) { return this->_materiales[material] >= this->_cargaMaxima[material]; }
+		//La cantidad máxima que puede cargar un Campesino
+		int cargaMaterialMaxima(tipoMaterial::TipoMaterial material) { return this->_cargaMaxima[material]; }
+		//Cantidad de material que se transporta o se almacena
 		int getCantidadMaterial(tipoMaterial::TipoMaterial material) { return this->_materiales[material];}
-		//Esta funcion devuelve el tipo de material. Esta pensada para los recursos (mina y posque) y los recolectores
-		//(campesinos), que tienen un solo tipo de material en toda su vida activa o un momento dado (los campesinos)
-		virtual tipoMaterial::TipoMaterial getTipoMaterial() { return tipoMaterial::NoDefinido; }
+		//El tipo de material que proporciona un recurso. Esta pensada para los recursos (mina y bosque)
+		virtual tipoMaterial::TipoMaterial getTipoMaterial();
 
 		void sumarUnidad(Objeto* unidad);
 
-
 		std::vector<Objeto*> _unidades;
-
 
 	protected:
 		tipoObjeto::TipoObjeto _tipo;
@@ -109,7 +137,6 @@ class Objeto : public AnimatedSprite {
 
 		Direction _facing;
 
-		bool _destinoAlcanzado;
 		bool _seleccionado;
 
 		int _maxHealth;
@@ -133,6 +160,8 @@ class Ayuntamiento : public Objeto {
 
 		void animationDone(std::string currentAnimation);
 		void setupAnimations();
+
+		tipoMaterial::TipoMaterial getTipoMaterial();
 
 		maquinaEstados<Ayuntamiento>* GetFSM() const{ return this->_apMaquinaEstados; }
 	private:
@@ -214,6 +243,13 @@ class Campesino : public Objeto {
 		void animationDone(std::string currentAnimation);
 		void setupAnimations();
 
+		//Se guarda un recurso que se va a recolectar, bosque o mina
+		void setRecursoRecolectar(Objeto* recurso) { this->_recursoRecoleccion = recurso; }
+		//Se devuelve un puntero al recurso que se esta recolectando
+		Objeto* getRecursoRecolectar() const { return this->_recursoRecoleccion; }
+
+		tipoMaterial::TipoMaterial getTipoMaterial();
+
 		/*
 		void handleTileCollisions(std::vector<Rectangle> &others);
 		void handleSlopeCollisions(std::vector<Slope> &others);
@@ -225,6 +261,8 @@ class Campesino : public Objeto {
 	private:
 		//Instancia de la clase Maquina de Estados
 		maquinaEstados<Campesino>* _cpMaquinaEstados; //Campesino puntero maquina de estados
+
+		Objeto* _recursoRecoleccion;	//Recurso que se está recolectando
 }; //class Campesino
 
 

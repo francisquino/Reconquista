@@ -46,8 +46,8 @@ void bosqueEstadoInactivo::entrar(Bosque* pBosque) {
 }
 
 void bosqueEstadoInactivo::ejecutar(Bosque* pBosque) {
-	std::cout << "\nObjeto tipo " << pBosque->getTipo() << ": "
-	<< "No hace nada";
+	//std::cout << "\nObjeto tipo " << pBosque->getTipo() << ": "
+	//<< "No hace nada";
 }
 
 void bosqueEstadoInactivo::salir(Bosque* pBosque) {

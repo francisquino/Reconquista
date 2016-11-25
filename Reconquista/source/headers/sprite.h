@@ -37,6 +37,9 @@ public:
     const inline float getX() const { return this->_x; }
     const inline float getY() const { return this->_y; }
 
+    const inline void setX(int x) { this->_x = x; }
+    const inline void setY(int y) { this->_y = y; }
+
     void setSourceRectX(int value);
     void setSourceRectY(int value);
     void setSourceRectW(int value);

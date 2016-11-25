@@ -9,6 +9,8 @@
 #define ESTADOSCAMPESINO_H
 
 #include "estado.h"
+#include "messagedispatcher.h"
+#include "tipomensaje.h"
 
 class Campesino;
 
@@ -56,7 +58,7 @@ class campesinoEstadoInactivo : public Estado<Campesino>
 
 //------------------------------------------------------------------------
 //
-//  En este estado el Campesino se dirige a un destino concreto.
+//  En este estado el Campesino se dirige a un destino.
 //------------------------------------------------------------------------
 class campesinoEstadoIrDestino : public Estado<Campesino>
 {

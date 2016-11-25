@@ -16,7 +16,7 @@
 #include "objeto.h"
 
 class Graphics;
-//class Ayuntamiento;
+class Ayuntamiento;
 //class Enemy;
 //class Player;
 struct Tileset;
@@ -28,6 +28,8 @@ public:
     ~Level();
     void update(int elapsedTime);
     void draw(Graphics &graphics);
+
+    void deseleccionarObjetos(Objeto* seleccionado);
 
     std::vector<Rectangle> checkTileCollisions(const Rectangle &other);
     std::vector<Slope> checkSlopeCollisions(const Rectangle &other);

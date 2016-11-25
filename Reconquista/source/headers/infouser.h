@@ -25,6 +25,7 @@ class InfoUser {
 
 		//Dibujar iconos e informacion de Campesino
 		void drawCampesino(Graphics &graphics);
+		Sprite* getIconoCampIrA() { return &this->_campIrA; };
 		Sprite* getIconoCampRecolectar() { return &this->_campRecolectar; };
 
 	private:
@@ -41,6 +42,7 @@ class InfoUser {
 
 		//Acciones Campesino
 		Sprite _campRecolectar;
+		Sprite _campIrA;
 };
 
 

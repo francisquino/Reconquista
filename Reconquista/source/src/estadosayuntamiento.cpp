@@ -46,8 +46,8 @@ void ayuntamientoEstadoInactivo::entrar(Ayuntamiento* pAyuntamiento) {
 }
 
 void ayuntamientoEstadoInactivo::ejecutar(Ayuntamiento* pAyuntamiento) {
-	std::cout << "\nObjeto tipo " << pAyuntamiento->getTipo() << ": "
-	<< "No hace nada";
+	//std::cout << "\nObjeto tipo " << pAyuntamiento->getTipo() << ": "
+	//<< "No hace nada";
 }
 
 void ayuntamientoEstadoInactivo::salir(Ayuntamiento* pAyuntamiento) {

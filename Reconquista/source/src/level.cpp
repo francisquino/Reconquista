@@ -1,20 +1,21 @@
-#include "level.h"
-#include "graphics.h"
-#include "globals.h"
-#include "utils.h"
-//#include "player.h"
-//#include "enemy.h"
-//#include "ayuntamiento.h"
-
-#include "tinyxml2.h"
-
-#include <SFML/Graphics.hpp>
-
 #include <sstream>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
+
+#include <SFML/Graphics.hpp>
+
+#include "level.h"
+#include "graphics.h"
+#include "globals.h"
+#include "utils.h"
+#include "input.h"
+//#include "player.h"
+//#include "enemy.h"
+//#include "ayuntamiento.h"
+
+#include "tinyxml2.h"
 
 using namespace tinyxml2;
 
@@ -22,7 +23,8 @@ Level::Level() {}
 
 Level::Level(std::string mapName, Graphics &graphics) :
         _mapName(mapName),
-        _size(sf::Vector2i(0,0))
+        _size(sf::Vector2i(0,0)),
+        _ayuntamiento(NULL)
 {
     this->loadMap(mapName, graphics);
 }
@@ -389,60 +391,37 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                         float x = pObject->FloatAttribute("x");
                         float y = pObject->FloatAttribute("y");
                         const char* name = pObject->Attribute("name");
-                                                std::stringstream ss;
-                                                ss << name;
-						if (ss.str() == "mina") {
-	                        XMLElement* pProperties = pObject->FirstChildElement("properties");
-	                        if (pProperties != NULL){
-	                            while(pProperties) {
-	                                XMLElement* pProperty = pProperties->FirstChildElement("property");
-	                                if (pProperty != NULL){
-	                                    while(pProperty) {
+                                                std::stringstream ss1;
+                                                ss1 << name;
+						XMLElement* pProperties = pObject->FirstChildElement("properties");
+						if (pProperties != NULL){
+							while(pProperties) {
+								XMLElement* pProperty = pProperties->FirstChildElement("property");
+								if (pProperty != NULL){
+									while(pProperty) {
 
-	                                        const char* name = pProperty->Attribute("name");
-	                                        std::stringstream ss;
-	                                        ss << name;
-	                                        if(ss.str() == "cantidad") {
-	                                            const char* value = pProperty->Attribute("value");
-	                                            std::stringstream ss2;
-	                                            ss2 << value;
-	                                            this->_recursos.push_back(new Mina(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
-	                                                    std::floor(y) * globals::SPRITE_SCALE), atoi(ss2.str().c_str())));
-	                                        }
-	                                        pProperty = pProperty->NextSiblingElement("property");
-	                                    }
-	                                }
-	                                pProperties = pProperties->NextSiblingElement("properties");
-	                            }
-	                        }
+										const char* name = pProperty->Attribute("name");
+										std::stringstream ss2;
+										ss2 << name;
+										if(ss2.str() == "cantidad") {
+											const char* value = pProperty->Attribute("value");
+											std::stringstream ss3;
+											ss3 << value;
+											if (ss1.str() == "mina") {
+												this->_recursos.push_back(new Mina(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+														std::floor(y) * globals::SPRITE_SCALE), atoi(ss3.str().c_str())));
+											}
+											else if (ss1.str() == "bosque") {
+												this->_recursos.push_back(new Bosque(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
+														std::floor(y) * globals::SPRITE_SCALE), atoi(ss3.str().c_str())));
+											}
+										}
+										pProperty = pProperty->NextSiblingElement("property");
+									}
+								}
+								pProperties = pProperties->NextSiblingElement("properties");
+							}
 						}
-
-						else if (ss.str() == "bosque") {
-	                        XMLElement* pProperties = pObject->FirstChildElement("properties");
-	                        if (pProperties != NULL){
-	                            while(pProperties) {
-	                                XMLElement* pProperty = pProperties->FirstChildElement("property");
-	                                if (pProperty != NULL){
-	                                    while(pProperty) {
-
-	                                        const char* name = pProperty->Attribute("name");
-	                                        std::stringstream ss;
-	                                        ss << name;
-	                                        if(ss.str() == "cantidad") {
-	                                            const char* value = pProperty->Attribute("value");
-	                                            std::stringstream ss2;
-	                                            ss2 << value;
-	                                            this->_recursos.push_back(new Bosque(graphics, sf::Vector2i(std::floor(x) * globals::SPRITE_SCALE,
-	                                                    std::floor(y) * globals::SPRITE_SCALE), atoi(ss2.str().c_str())));
-	                                        }
-	                                        pProperty = pProperty->NextSiblingElement("property");
-	                                    }
-	                                }
-	                                pProperties = pProperties->NextSiblingElement("properties");
-	                            }
-	                        }
-						}
-
                         pObject = pObject->NextSiblingElement("object");
                     }
                 }
@@ -516,6 +495,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 }
 
 void Level::update(int elapsedTime) {
+	printf("------ U P D A T E ------\n");
 	this->_ayuntamiento->update(elapsedTime);
 
     for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
@@ -611,6 +591,29 @@ void Level::draw(Graphics &graphics) {
     }*/
 
 }
+
+// Recorre todos los objetos de este nivel y los marca como No Seleccionado, excepto uno.
+void Level::deseleccionarObjetos(Objeto* seleccionado) {
+	//Ayuntamiento
+	if (this->_ayuntamiento != seleccionado) {
+		this->_ayuntamiento->setSeleccionado(false);
+	}
+
+	//Unidades del ayuntamiento
+	for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
+		if (this->_ayuntamiento->_unidades.at(i) != seleccionado) {
+			this->_ayuntamiento->_unidades.at(i)->setSeleccionado(false);
+		}
+	}
+
+	//Recursos del nivel
+	for (unsigned int i=0; i<this->_recursos.size(); i++) {
+		if (this->_recursos.at(i) != seleccionado) {
+			this->_recursos.at(i)->setSeleccionado(false);
+		}
+	}
+} //deseleccionarObjetos
+
 
 std::vector<Rectangle> Level::checkTileCollisions(const Rectangle &other) {
     std::vector<Rectangle> others;

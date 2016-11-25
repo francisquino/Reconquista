@@ -21,6 +21,24 @@ namespace {
     const int MAX_FRAME_TIME = 1000 / FPS;
 }
 
+enum tipoCursor {
+	puntero,
+	lupa,
+	recolectar
+};
+
+//Este es el estado en el que se encuentra el desarrollo del juego
+enum estadoJuego {
+	esperandoPosicion,
+	esperandoRecurso,
+	inactivo
+};
+
+extern Level _level;
+
+//Posicion para centrar la vista Juego
+sf::Vector2f position(0, 0);
+
 bool isMouseBox = false;
 bool _aytoSeleccionado = false;
 Objeto* objetoSeleccionado = NULL;
@@ -32,13 +50,8 @@ sf::Vector2f startingPositionWorldPos, currentPositionWorldPos;
 
 Sprite destinoCruz;
 
-enum tipoCursor {
-	puntero,
-	lupa,
-	recolectar
-};
+tipoCursor _tipoCursor = puntero;
 
-tipoCursor _tipoCursor;
 
 Game::Game() {
     this->gameLoop();
@@ -51,11 +64,11 @@ void Game::gameLoop() {
     Graphics graphics;
     Input input;
     sf::Event event;
+    estadoJuego _estadoJuego = inactivo;
+    destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, 0, 0);
 
-    _tipoCursor = puntero;
-
-    this->_level = Level("MapReconquista1", graphics);
-    //this->_player = Player(graphics, this->_level.getPlayerSpawnPoint());
+    _level = Level("MapReconquista1", graphics);
+    //this->_player = Player(graphics, _level.getPlayerSpawnPoint());
     this->_info = InfoUser(graphics);
     //this->_hud = HUD(graphics, this->_player);
 
@@ -92,27 +105,40 @@ void Game::gameLoop() {
             //
             //Se desplaza el raton
             //
-            if (event.type == sf::Event::MouseMoved) {
-            	starting_position = sf::Mouse::getPosition(graphics.getWindow());
-            	//_tipoCursor = puntero;
-            	graphics.getWindow().setView(*graphics.getView(Juego));
-            	//Si el ratón está sobre un objeto de la vista Juego, cambiar el cursor por una lupa
-				if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-										this->_level._ayuntamiento->getBoundingBox())) {
-            		_tipoCursor = lupa;
-            	}
-				else
-				{
-					//Recorrer las unidades del ayuntamiento
-					for (unsigned int i=0; i<this->_level._ayuntamiento->_unidades.size(); i++) {
-						if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-										this->_level._ayuntamiento->_unidades.at(i)->getBoundingBox())) {
+			if (event.type == sf::Event::MouseMoved) {
+				starting_position = sf::Mouse::getPosition(graphics.getWindow());
+
+				//Cursor dentro de Ventana Juego
+				if (input.dentroVistaJuego(starting_position)) {
+
+					//Si estado juego esperandoPosición o esperando Recurso
+					if (_estadoJuego == esperandoPosicion || _estadoJuego == esperandoRecurso) _tipoCursor = recolectar;
+
+					//Si estado juego inactivo
+					if (_estadoJuego == inactivo) {
+						_tipoCursor = puntero;
+
+
+						graphics.getWindow().setView(*graphics.getView(Juego));
+						//Si el ratón está sobre un objeto de la vista Juego, cambiar el cursor por una lupa
+						if (input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &_level)) {
 							_tipoCursor = lupa;
-							break;
 						}
 					}
-            	}
-            }
+				} //Ventana Juego
+
+				//Cursor dentro de Ventana Info
+				else if (input.dentroVistaInfo(starting_position)) {
+					//El cursor siempre será de tipo Puntero
+					_tipoCursor = puntero;
+				}
+				//Cursor dentro de Ventana Minimapa
+				else if (input.dentroVistaMinimapa(starting_position)) {
+					//El cursor puede ser de tipo Puntero o Posicion, según el estado del juego
+					if (_estadoJuego == inactivo) _tipoCursor = puntero;
+					else if (_estadoJuego == esperandoPosicion) _tipoCursor = recolectar;
+				}
+            } //Se desplaza el raton
 
             //
             //Se pulsa el boton izquierdo del raton
@@ -126,97 +152,113 @@ void Game::gameLoop() {
             	//Cursor dentro de la vista Juego
             	//
             	if (input.dentroVistaJuego(starting_position)) {
-            		//Si el cursor es Lupa (estamos sobre un objeto)
-            		if (_tipoCursor == lupa) {
-            			graphics.getWindow().setView(*graphics.getView(Juego));
-            			//Estamos sobre Ayuntamiento
-            			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-                    							this->_level._ayuntamiento->getBoundingBox())) {
-            				//Mostrar en vista Info los datos del Ayuntamiento y Acciones
+        			graphics.getWindow().setView(*graphics.getView(Juego));
 
-            				objetoSeleccionado = this->_level._ayuntamiento;
-            				objetoSeleccionado->setSeleccionado(true);
+        			//Estado del juego Inactivo: podemos seleccionar un Objeto
+        			if (_estadoJuego == inactivo) {
+        				//Estamos sobre un objeto
+        				if (input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level))) {
+            				objetoSeleccionado = input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level));
+    						objetoSeleccionado->setSeleccionado(true);
 
-            				//El resto de objetos se deseleccionan
-							for (unsigned int i=0; i<this->_level._ayuntamiento->_unidades.size(); i++) {
-								this->_level._ayuntamiento->_unidades.at(i)->setSeleccionado(false);
-							}
-            			}
-
-            			//Estamos sobre otro objeto
-            			else {
-							//Recorrer las unidades del ayuntamiento
-							for (unsigned int i=0; i<this->_level._ayuntamiento->_unidades.size(); i++) {
-								if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-												this->_level._ayuntamiento->_unidades.at(i)->getBoundingBox())) {
-		            				objetoSeleccionado = this->_level._ayuntamiento->_unidades.at(i);
-		            				objetoSeleccionado->setSeleccionado(true);
-									break;
-								}
-								//El resto de unidades se deseleccionan
-								else {
-		            				this->_level._ayuntamiento->_unidades.at(i)->setSeleccionado(false);
-								}
-							}
-							//El ayuntamiento también se deselecciona
-            				this->_level._ayuntamiento->setSeleccionado(false);
-            			}
-
-            		}
-            		//Cursor es Buscando recurso para recolectar y hay seleccionado un Campesino
-            		else if (_tipoCursor==recolectar && objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
-            			//Recorrer los recursos de este nivel
-						for (unsigned int i=0; i<this->_level._recursos.size(); i++) {
-							if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position),
-											this->_level._recursos.at(i)->getBoundingBox())) {
-								//El cursor está sobre un recurso. Fijarlo como destino para recolectar
-								//Hacemos Downcasting para poder trabajar con el ObjetoSeleccionado como un Campesino
-								//dynamic_cast<Campesino*>(objetoSeleccionado)->setRecolectando(true);
-								//dynamic_cast<Campesino*>(objetoSeleccionado)->setDestinoRecoleccion(this->_level._recursos.at(i));
-								printf("Empezamos a recolectar %i\n", this->_level._recursos.at(i)->getTipo());
-								break;
-							}
+							//El resto de objetos se deseleccionan
+							_level.deseleccionarObjetos(objetoSeleccionado);
 						}
-						//Si no estamos sobre ningún recurso, parar la recoleccion.
-            		}
+        				//Hemos pinchado sobre ningun objeto
+        				else {
+        					//Si tenemos un objeto seleccionado, lo deseleccionamos
+        					if (objetoSeleccionado!=NULL) {
+        						objetoSeleccionado->setSeleccionado(false);
+    							//El resto de objetos tambien se deseleccionan
+    							_level.deseleccionarObjetos(objetoSeleccionado);
+    							objetoSeleccionado=NULL;
+        					}
+        				}
 
+        			} //Estado del juego Inactivo
+
+            		//Estado del juego Esperando Posicion
+        			else if (_estadoJuego == esperandoPosicion) {
+						sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
+        				//Enviamos un mensaje al Campesino indicandole el nuevo destino
+        				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
+        										NULL,				 //Objeto* sender
+												objetoSeleccionado,   //Objeto* recipient
+												_msjDestinoFijado,//the message
+												&posicion_destino);  //Informacion extra
+        			    destinoCruz.setX(posicion_destino.x);
+        			    destinoCruz.setY(posicion_destino.y);
+        			    _estadoJuego = inactivo;
+        			} //Estado del juego Esperando Posicion
+
+            		//Estado del juego Esperando Recurso
+        			else if (_estadoJuego == esperandoRecurso) {
+        				//Estamos sobre un recurso
+        				Objeto* pObjeto = input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level));
+        				if (pObjeto!=NULL && (pObjeto->getTipo()==tipoObjeto::Bosque || pObjeto->getTipo()==tipoObjeto::Mina)) {
+        					printf("Posicion recurso %f %f\n", pObjeto->getX(), pObjeto->getY());
+        					//sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Vector2i(pObjeto->getX(), pObjeto->getY()));							//El cursor está sobre un recurso. Enviamos un mensaje al Campesino indicandole el nuevo recurso
+        					sf::Vector2i posicion_destino = sf::Vector2i (pObjeto->getX(), pObjeto->getY());
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
+            										pObjeto,				//Objeto* sender
+    												objetoSeleccionado,   	//Objeto* recipient
+    												_msjDestinoFijado,		//the message
+    												&posicion_destino);		//Informacion extra
+							//Hacemos Downcasting para poder trabajar con el ObjetoSeleccionado como un Campesino
+        					dynamic_cast<Campesino*>(objetoSeleccionado)->setRecursoRecolectar(pObjeto);
+							printf("Empezamos a recolectar %s\n", tipoObjetoToStr(pObjeto->getTipo()).c_str());
+	        			    destinoCruz.setX(pObjeto->getX());
+	        			    destinoCruz.setY(pObjeto->getY());
+        				} //If (pObjeto sobre Bosque o Mina)
+        				//No estamos sobre un recurso
+        				else {
+        					//Nos dirigimos al punto marcado
+    						sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
+            				//Enviamos un mensaje al Campesino indicandole el nuevo destino
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,	 	//time delay
+            										NULL,					 	//Objeto* sender
+    												objetoSeleccionado,   		//Objeto* recipient
+    												_msjDestinoFijado,			//the message
+    												&posicion_destino);  		//Informacion extra
+            			    destinoCruz.setX(posicion_destino.x);
+            			    destinoCruz.setY(posicion_destino.y);
+        				}
+        			} //Estado del juego Esperando Recurso
+
+
+            		/*
                 	//Campesino seleccionado. Al pulsar con el boton izquierdo, fijamos un destino.
 					if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
-						sf::Vector2i posicion_destino;
-						graphics.getWindow().setView(*graphics.getView(Juego));
-						posicion_destino = sf::Mouse::getPosition(graphics.getWindow());
-						objetoSeleccionado->setDestino(graphics.getWindow().mapPixelToCoords(posicion_destino).x, graphics.getWindow().mapPixelToCoords(posicion_destino).y);
-						destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, objetoSeleccionado->getDestinoX(), objetoSeleccionado->getDestinoY());
-						graphics.getWindow().setView(*graphics.getView(Completa));
-
 
 						//Comprobar que objetos estan dentro de la mouseBox
-						/*
-						if (isMouseBox) {
+						//if (isMouseBox) {
 							//printf("Player %i, %i, %i, %i\n", this->_player.getBoundingBox().getLeft(), this->_player.getBoundingBox().getTop(), this->_player.getBoundingBox().getRight(), this->_player.getBoundingBox().getBottom());
 							//printf ("Coords Antes %i, %i, %i, %i\n", starting_position.x, starting_position.y, current_position.x, current_position.y);
 							//printf ("Coords Despues %f, %f, %f, %f\n", startingPositionWorldPos.x, startingPositionWorldPos.y, currentPositionWorldPos.x, currentPositionWorldPos.y);
 
-							if (this->_player.checkColisionObjetos(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
-									currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
+							//if (this->_player.checkColisionObjetos(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
+							//		currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
 
 								//this->_player.handleSeleccion();
-							}
-						}*/
+							//}
+						//}
 
 					}
 
-					if (isMouseBox) {
-						isMouseBox = false;
-					}
-            	}
+					//if (isMouseBox) {
+					//	isMouseBox = false;
+					//}
+					 *
+					 */
+            	} //Cursor dentro de vista Juego
 
             	//
             	//Cursor dentro de la vista Minimapa
             	//
             	else if (input.dentroVistaMinimapa(starting_position)) {
             		printf ("Minimapa\n");
-            	}
+            	} //Cursor dentro de vista Minimapa
+
             	//
             	//Cursor dentro de la vista Info
             	//
@@ -225,15 +267,15 @@ void Game::gameLoop() {
 					//
             		//Ayuntamiento seleccionado:
 					//
-					if (this->_level._ayuntamiento->getSeleccionado()) {
+					if (_level._ayuntamiento->getSeleccionado()) {
                 		//Si pulsamos sobre la acción "Entrenar Campesino"
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
 								this->_info.getIconoAytoEntrenarCampesino()->getBoundingBox()))
             			{
             				//Hacemos Upcasting, para que al llamar al update ejecute la función de Campesino y no la de Objeto.
-                            Objeto* campesino = new Campesino(graphics, sf::Vector2i(this->_level._ayuntamiento->getX()+32*this->_level._ayuntamiento->_unidades.size(),
-                            														this->_level._ayuntamiento->getY()-32));
-            				this->_level._ayuntamiento->sumarUnidad(campesino);
+                            Objeto* campesino = new Campesino(graphics, sf::Vector2i(_level._ayuntamiento->getX()+32*_level._ayuntamiento->_unidades.size(),
+                            														_level._ayuntamiento->getY()-32));
+            				_level._ayuntamiento->sumarUnidad(campesino);
 
             				//Comprobar que cumnplimos con requisitos (recursos)
             				//Si se puede, lanzar CrearCampesino para este Ayto.
@@ -241,32 +283,43 @@ void Game::gameLoop() {
             				//Dibujar la barra de progreso de creación
             			} //Entrenar campesino
 
-            		}
+            		} //Ayuntamiento seleccionado
 					//
             		//Campesino seleccionado:
 					//
 					else if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
-                		//Si pulsamos sobre la acción "Recolectar"
+            			//Acción "Ir a"
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+								this->_info.getIconoCampIrA()->getBoundingBox())) {
+            				//El estado del juego pasa a Esperando Posicion
+            				_estadoJuego = esperandoPosicion;
+            				//Enviamos un mensaje al Campesino para que entre en estado de Ir a un destino
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
+            										NULL,				 //Objeto* sender
+													objetoSeleccionado,   //Objeto* recipient
+													_msjIrA,			//the message
+													NULL);  			//Informacion extra
+            			} //Ir a
+
+                		//Si pulsamos sobre la acción "Recolectar"
+            			else if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
 								this->_info.getIconoCampRecolectar()->getBoundingBox()))
             			{
-
-            				_tipoCursor=recolectar;
-
+            				//El estado del juego pasa a Esperar Recurso
+            				_estadoJuego = esperandoRecurso;
             				//Enviamos un mensaje al Campesino para que entre en estado de recolectar
             				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
             										NULL,				 //Objeto* sender
 													objetoSeleccionado,   //Objeto* recipient
-													_msjRecolectarRecurso,//the message
-													NULL);  //Informacion extra
+													_msjRecolectar,		//the message
+													NULL);				//Informacion extra
             			} //Recolectar
-
-            		}
-
-            	}
-            }
+            		} //Campesino seleccionado
+            	} //Cursor dentro de vita Info
+            } //Se pulsa el botón izquierdo
 
             //Pulsamos el botón izquierdo mientras desplazamos el ratón
+            /*
             if( event.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left) )
             {
             	graphics.getWindow().setView(*graphics.getView(Juego));
@@ -294,23 +347,29 @@ void Game::gameLoop() {
             else if (event.type == sf::Event::Closed) {
                 return;
             }
+            */
         }
         if (input.wasKeyPressed(sf::Keyboard::Escape) == true) {
             return;
         }
-        /*else if (input.isKeyHeld(sf::Keyboard::Left) == true) {
-            this->_player.moveLeft();
+        else if (input.isKeyHeld(sf::Keyboard::Left) == true) { //Movemos la vista juego a la izq
+            //this->_player.moveLeft();
+            position.x-=1;
         }
-        else if (input.isKeyHeld(sf::Keyboard::Right) == true) {
-            this->_player.moveRight();
+        else if (input.isKeyHeld(sf::Keyboard::Right) == true) { //Movemos la vista juego a la der
+            //this->_player.moveRight();
+            position.x+=1;
         }
-        if (input.isKeyHeld(sf::Keyboard::Up) == true) {
-            this->_player.lookUp();
+        if (input.isKeyHeld(sf::Keyboard::Up) == true) { //Movemos la vista juego arriba
+            //this->_player.lookUp();
+            position.y-=1;
         }
-        else if (input.isKeyHeld(sf::Keyboard::Down) == true) {
-            this->_player.lookDown();
+        else if (input.isKeyHeld(sf::Keyboard::Down) == true) { //Movemos la vista juego abajo
+            //this->_player.lookDown();
+            position.y+=1;
         }
 
+        /*
         if (input.wasKeyReleased(sf::Keyboard::Up) == true) {
             this->_player.stopLookingUp();
         }
@@ -353,7 +412,7 @@ void Game::draw(Graphics& graphics) {
     	this->_info.drawCampesino(graphics);
     }
 
-    this->_level.draw(graphics);
+    _level.draw(graphics);
     graphics.getWindow().setView(*graphics.getView(Juego));
     //this->_player.draw(graphics);
 
@@ -368,18 +427,18 @@ void Game::draw(Graphics& graphics) {
     graphics.getWindow().draw(mouseBox);
 
 
-    //Centrar vista Juego según la posición del ayuntamiento inicialmente, luego según el objeto seleccionado
-    sf::Vector2f position(0, 0);
-    if (objetoSeleccionado==NULL)
-    	position = sf::Vector2f(this->_level._ayuntamiento->getX(), this->_level._ayuntamiento->getY());
-    else
-    	position = sf::Vector2f(objetoSeleccionado->getX(), objetoSeleccionado->getY());
+    //Centrar vista Juego según la posición del ayuntamiento inicialmente
+    if (position.x==0.f && position.y==0.f)
+    	position = sf::Vector2f(_level._ayuntamiento->getX(), _level._ayuntamiento->getY());
+    //else if (objetoSeleccionado!=NULL)
+    //	position = sf::Vector2f(objetoSeleccionado->getX(), objetoSeleccionado->getY());
+
     //Obtener el punto medio de _vistaJuego
     float viewMitadX = graphics.getView(Juego)->getSize().x * 0.5;
     float viewMitadY = graphics.getView(Juego)->getSize().y * 0.5;
     //Obtener tamaño del mapa
-    int sizeMapaX = this->_level.getMapSize().x * this->_level.getTileSize().x * globals::SPRITE_SCALE;
-    int sizeMapaY = this->_level.getMapSize().y * this->_level.getTileSize().y * globals::SPRITE_SCALE;
+    int sizeMapaX = _level.getMapSize().x * _level.getTileSize().x * globals::SPRITE_SCALE;
+    int sizeMapaY = _level.getMapSize().y * _level.getTileSize().y * globals::SPRITE_SCALE;
     //Comparamos la posicion de ayuntamiento con el mapa,
     //tomando como extremos los bordes del mapa menos la mitad de la vista,
     //para luego centrar la vista.
@@ -412,10 +471,10 @@ void Game::draw(Graphics& graphics) {
 void Game::update(float elapsedTime) {
     //this->_player.update(elapsedTime);
 
-	this->_level.update(elapsedTime);
+	_level.update(elapsedTime);
     this->_info.update(elapsedTime);
 
-    /*if (isMouseBox && this->_level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
+    /*if (isMouseBox && _level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {
 
 		//printf("Dibujar iconos de acciones del ayuntamiento en vista Info\n");
@@ -425,23 +484,23 @@ void Game::update(float elapsedTime) {
     /*
     //Check collisions
     std::vector<Rectangle> others;
-    if((others = this->_level.checkTileCollisions(this->_player.getBoundingBox())).size() > 0) {
+    if((others = _level.checkTileCollisions(this->_player.getBoundingBox())).size() > 0) {
         //Player collided with at least one tile. Handle it.
         this->_player.handleTileCollisions(others);
     }
     //Check slopes
     std::vector<Slope> otherSlopes;
-    if ((otherSlopes = this->_level.checkSlopeCollisions(this->_player.getBoundingBox())).size() > 0) {
+    if ((otherSlopes = _level.checkSlopeCollisions(this->_player.getBoundingBox())).size() > 0) {
         this->_player.handleSlopeCollisions(otherSlopes);
     }
     //Check doors
     std::vector<Door> otherDoors;
-    if ((otherDoors = this->_level.checkDoorCollisions(this->_player.getBoundingBox())).size() > 0) {
-        this->_player.handleDoorCollisions(otherDoors, this->_level, this->_graphics);
+    if ((otherDoors = _level.checkDoorCollisions(this->_player.getBoundingBox())).size() > 0) {
+        this->_player.handleDoorCollisions(otherDoors, _level, this->_graphics);
     }
     //Check enemies
     std::vector<Enemy*> otherEnemies;
-    if ((otherEnemies = this->_level.checkEnemyCollisions(this->_player.getBoundingBox())).size() > 0) {
+    if ((otherEnemies = _level.checkEnemyCollisions(this->_player.getBoundingBox())).size() > 0) {
         this->_player.handleEnemyCollisions(otherEnemies);
     }
     */

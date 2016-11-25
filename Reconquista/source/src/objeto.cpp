@@ -5,6 +5,7 @@
  *      Author: francis
  */
 
+#include "level.h"
 #include "objeto.h"
 #include "graphics.h"
 #include "maquinaestados.h"
@@ -21,6 +22,7 @@ namespace object_constants {
     //const float GRAVITY_CAP = 0.8f;
 }
 
+extern Level _level;
 
 //Clase base objeto
 Objeto::Objeto() {}
@@ -35,7 +37,6 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
 					_destinoX(-1),
 					_destinoY(-1),
                     _facing(LEFT),
-					_destinoAlcanzado(false),
 					_seleccionado(false),
                     _maxHealth(maxHealth),
                     _currentHealth(maxHealth),
@@ -44,6 +45,11 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
 {}
 
 void Objeto::update(int elapsedTime) {
+	//Move by dx
+	this->_x += this->_dx * elapsedTime;
+	//Move by dy
+	this->_y += this->_dy * elapsedTime;
+
 	AnimatedSprite::update(elapsedTime);
 }
 
@@ -113,20 +119,48 @@ void Objeto::setDestino(const float destinoX, const float destinoY) {
 	this->_destinoY = destinoY;
 }
 
-void Objeto::setDestinoAlcanzado(const bool destino) {
-	this->_destinoAlcanzado = destino;
-}
-
 void Objeto::setSeleccionado(const bool seleccionado) {
 	this->_seleccionado = seleccionado;
 }
-
 
 bool Objeto::checkColision(const Rectangle &other) {
     if (this->getBoundingBox().collidesWith(other)) {
         return true;
     }
     else return false;
+}
+
+//Comprueba si este objeto choca con el objeto que le indicamos
+bool Objeto::chocaConObjeto(Objeto* pObjeto) {
+	if (this->checkColision(pObjeto->getBoundingBox())) return true;
+	else return false;
+}
+
+//Comprueba si este objeto choca con cualquier otro objeto del nivel
+Objeto* Objeto::chocaConAlgunObjeto() {
+	//Recorremos todos los objetos del nivel:
+
+	//Ayuntamiento
+	if (this->chocaConObjeto(_level._ayuntamiento) && this!=_level._ayuntamiento) {
+		return (_level._ayuntamiento);
+	}
+
+	//Unidades del ayuntamiento
+	for (unsigned int i=0; i<_level._ayuntamiento->_unidades.size(); i++) {
+		if (this->chocaConObjeto(_level._ayuntamiento->_unidades.at(i)) && this!=_level._ayuntamiento->_unidades.at(i)) {
+			return (_level._ayuntamiento->_unidades.at(i));
+		}
+	}
+
+	//Recursos del nivel
+	for (unsigned int i=0; i<_level._recursos.size(); i++) {
+		if (this->chocaConObjeto(_level._recursos.at(i)) && this!=_level._recursos.at(i)) {
+			return (_level._recursos.at(i));
+		}
+	}
+
+	//No esta sobre ningun objeto
+	return NULL;
 }
 
 void Objeto::gainHealth(int amount) {
@@ -139,6 +173,8 @@ void Objeto::modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int 
 	if ((this->_materiales[material] += cantidad) < 0)
 		this->_materiales[material] = 0;
  }
+
+tipoMaterial::TipoMaterial Objeto::getTipoMaterial() {}
 
 void Objeto::sumarUnidad(Objeto* unidad) {
 	this->_unidades.push_back(unidad);
@@ -182,6 +218,9 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
  void Ayuntamiento::setupAnimations() {
     this->addAnimation(1, 0, 0, "AyuntamientoInicial", 32, 32, sf::Vector2i(0,0));
  }
+
+  tipoMaterial::TipoMaterial Ayuntamiento::getTipoMaterial() {}
+
 
 //class Mina
 Mina::Mina() {}
@@ -259,15 +298,19 @@ void Bosque::setupAnimations() {
     this->addAnimation(1, 1, 0, "BosqueInicial", 16, 16, sf::Vector2i(0,0));
 }
 
+
 //Clase Campesino
 Campesino::Campesino() {}
 
 Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
- 	Objeto(graphics, tipoObjeto::Campesino, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint, 3, 100)
+ 	Objeto(graphics, tipoObjeto::Campesino, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint, 3, 100),
+ 	_recursoRecoleccion(NULL)
 {
 	graphics.loadImage("content/sprites/Tile-set-Toen's Medieval Strategy.png");
 	this->setupAnimations();
 	this->playAnimation("IdleRight");
+	this->_cargaMaxima[tipoMaterial::Madera] = 100;
+	this->_cargaMaxima[tipoMaterial::Oro] = 100;
 
 	//Inicializar la maquina de estados
 	this->_cpMaquinaEstados = new maquinaEstados<Campesino>(this);
@@ -277,6 +320,7 @@ Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
 
  void Campesino::update(int elapsedTime) {
 	//Si hay un destino fijado, movernos hacia él.
+	 /*
 	if (this->getDestinoX() != -1 && this->getDestinoY() != -1) {
 		if(this->getX() < this->getDestinoX()) {
 			this->moveRight();
@@ -305,6 +349,7 @@ Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
 	this->_x += this->_dx * elapsedTime;
 	//Move by dy
 	this->_y += this->_dy * elapsedTime;
+	*/
 
 	Objeto::update(elapsedTime);
 
@@ -343,3 +388,5 @@ Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
      this->addAnimation(1, 7, 0, "LookBackwardsLeft", 16, 16, sf::Vector2i(0,0));
      this->addAnimation(1, 7, 16, "LookBackwardsRight", 16, 16, sf::Vector2i(0,0));*/
  }
+
+ tipoMaterial::TipoMaterial Campesino::getTipoMaterial() {}

@@ -100,3 +100,32 @@ bool Input::sobre(const sf::Vector2i coord, Rectangle boundingBox) {
 		return true;
 	else return false;
 }
+
+// Comprueba que el cursor (posicion), se encuentra sobre algún objeto
+// del nivel. Si es así, devolvemos un puntero a ese objeto.
+Objeto* Input::cursorSobreObjeto(sf::Vector2i posicion, Level* pLevel) {
+	//Recorremos todos los objetos del nivel:
+
+	//Ayuntamiento
+	if (this->sobre(posicion, pLevel->_ayuntamiento->getBoundingBox())) {
+		return (pLevel->_ayuntamiento);
+	}
+
+	//Unidades del ayuntamiento
+	for (unsigned int i=0; i<pLevel->_ayuntamiento->_unidades.size(); i++) {
+		if (this->sobre(posicion, pLevel->_ayuntamiento->_unidades.at(i)->getBoundingBox())) {
+			return (pLevel->_ayuntamiento->_unidades.at(i));
+		}
+	}
+
+	//Recursos del nivel
+	for (unsigned int i=0; i<pLevel->_recursos.size(); i++) {
+		if (this->sobre(posicion, pLevel->_recursos.at(i)->getBoundingBox())) {
+			return (pLevel->_recursos.at(i));
+		}
+	}
+
+	//No esta sobre ningun objeto
+	return NULL;
+} //sobreObjeto
+

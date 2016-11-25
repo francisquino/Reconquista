@@ -20,7 +20,8 @@ InfoUser::InfoUser(Graphics &graphics) {
     this->_aytoEntrenarCampesino = Sprite(graphics, "content/sprites/Iconos.png", 0, 0, 32, 32, 0, 164);
 
     //Iconos Campesino
-    this->_campRecolectar = Sprite(graphics, "content/sprites/Iconos.png", 0, 32, 32, 32, 0, 164);
+    this->_campIrA = Sprite(graphics, "content/sprites/Iconos.png", 32, 32, 32, 32, 0, 164);
+    this->_campRecolectar = Sprite(graphics, "content/sprites/Iconos.png", 0, 32, 32, 32, 64+4, 164);
 }
 
 void InfoUser::update(int elapsedTime) {
@@ -45,5 +46,6 @@ void InfoUser::drawAyuntamiento(Graphics &graphics) {
 
 void InfoUser::drawCampesino(Graphics &graphics) {
 	graphics.getWindow().setView(*graphics.getView(Info));
+    this->_campIrA.draw(graphics, this->_campIrA.getX(), this->_campIrA.getY());
     this->_campRecolectar.draw(graphics, this->_campRecolectar.getX(), this->_campRecolectar.getY());
 }

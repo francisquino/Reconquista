@@ -6,6 +6,9 @@
  */
 
 #include "game.h"
+#include "level.h"
+
+Level _level;
 
 int main(int argc , const char* argv[]) {
     Game game;

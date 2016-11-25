@@ -44,7 +44,7 @@ class maquinaEstados
 		void update()const
 		{
 			//Si un estado global existe, llamar a su metodo Ejecutar
-			//if (opEstadoGlobal) opEstadoGlobal->ejecutar(opPropietario);
+			if (opEstadoGlobal) opEstadoGlobal->ejecutar(opPropietario);
 			//Igual para el estado actual
 			if (opEstadoActual) opEstadoActual->ejecutar(opPropietario);
 		}
@@ -79,7 +79,7 @@ class maquinaEstados
 		}
 
 		//Cambiar el estado al estado previo
-		void revertirAEstadoPrevio()
+		void cambiarAEstadoPrevio()
 		{
 			cambiarEstado(opEstadoPrevio);
 		}
