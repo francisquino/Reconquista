@@ -219,7 +219,7 @@ Ayuntamiento::Ayuntamiento(Graphics &graphics, sf::Vector2i spawnPoint) :
     this->addAnimation(1, 0, 0, "AyuntamientoInicial", 32, 32, sf::Vector2i(0,0));
  }
 
-  tipoMaterial::TipoMaterial Ayuntamiento::getTipoMaterial() {}
+ tipoMaterial::TipoMaterial Ayuntamiento::getTipoMaterial() {}
 
 
 //class Mina
@@ -259,7 +259,6 @@ void Mina::animationDone(std::string currentAnimation) {
 void Mina::setupAnimations() {
     this->addAnimation(1, 0, 0, "MinaInicial", 16, 16, sf::Vector2i(0,0));
 }
-
 
  //class Bosque
 Bosque::Bosque() {}
@@ -389,4 +388,8 @@ Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
      this->addAnimation(1, 7, 16, "LookBackwardsRight", 16, 16, sf::Vector2i(0,0));*/
  }
 
- tipoMaterial::TipoMaterial Campesino::getTipoMaterial() {}
+ tipoMaterial::TipoMaterial Campesino::getTipoMaterial() {
+	 //Devuelve el material del que transportamos alguna cantidad
+	 if (this->getCantidadMaterial(tipoMaterial::Madera) > 0) return tipoMaterial::Madera;
+	 else return tipoMaterial::Oro;
+ }

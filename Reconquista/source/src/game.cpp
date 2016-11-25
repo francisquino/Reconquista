@@ -11,6 +11,7 @@
 #include "telegrama.h"
 #include "messagedispatcher.h"
 #include "tipomensaje.h"
+#include "tipoestadojuego.h"
 
 /* Game class
  * This class holds all information for our main game loop
@@ -27,14 +28,9 @@ enum tipoCursor {
 	recolectar
 };
 
-//Este es el estado en el que se encuentra el desarrollo del juego
-enum estadoJuego {
-	esperandoPosicion,
-	esperandoRecurso,
-	inactivo
-};
 
 extern Level _level;
+extern tipoEstadoJuego _estadoJuego;
 
 //Posicion para centrar la vista Juego
 sf::Vector2f position(0, 0);
@@ -64,8 +60,9 @@ void Game::gameLoop() {
     Graphics graphics;
     Input input;
     sf::Event event;
-    estadoJuego _estadoJuego = inactivo;
     destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, 0, 0);
+
+    _estadoJuego = _estInactivo;
 
     _level = Level("MapReconquista1", graphics);
     //this->_player = Player(graphics, _level.getPlayerSpawnPoint());
@@ -112,10 +109,10 @@ void Game::gameLoop() {
 				if (input.dentroVistaJuego(starting_position)) {
 
 					//Si estado juego esperandoPosición o esperando Recurso
-					if (_estadoJuego == esperandoPosicion || _estadoJuego == esperandoRecurso) _tipoCursor = recolectar;
+					if (_estadoJuego == _estEsperandoPosicion || _estadoJuego == _estEsperandoRecurso) _tipoCursor = recolectar;
 
-					//Si estado juego inactivo
-					if (_estadoJuego == inactivo) {
+					//Si estado juego _estInactivo o recolectando
+					if (_estadoJuego == _estInactivo || _estadoJuego==_estRecolectando) {
 						_tipoCursor = puntero;
 
 
@@ -135,8 +132,8 @@ void Game::gameLoop() {
 				//Cursor dentro de Ventana Minimapa
 				else if (input.dentroVistaMinimapa(starting_position)) {
 					//El cursor puede ser de tipo Puntero o Posicion, según el estado del juego
-					if (_estadoJuego == inactivo) _tipoCursor = puntero;
-					else if (_estadoJuego == esperandoPosicion) _tipoCursor = recolectar;
+					if (_estadoJuego == _estInactivo) _tipoCursor = puntero;
+					else if (_estadoJuego == _estEsperandoPosicion) _tipoCursor = recolectar;
 				}
             } //Se desplaza el raton
 
@@ -154,8 +151,8 @@ void Game::gameLoop() {
             	if (input.dentroVistaJuego(starting_position)) {
         			graphics.getWindow().setView(*graphics.getView(Juego));
 
-        			//Estado del juego Inactivo: podemos seleccionar un Objeto
-        			if (_estadoJuego == inactivo) {
+        			//Estado del juego _estInactivo o Recolectando: podemos seleccionar un Objeto
+        			if (_estadoJuego == _estInactivo || _estadoJuego == _estRecolectando) {
         				//Estamos sobre un objeto
         				if (input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level))) {
             				objetoSeleccionado = input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level));
@@ -175,10 +172,10 @@ void Game::gameLoop() {
         					}
         				}
 
-        			} //Estado del juego Inactivo
+        			} //Estado del juego _estInactivo
 
             		//Estado del juego Esperando Posicion
-        			else if (_estadoJuego == esperandoPosicion) {
+        			else if (_estadoJuego == _estEsperandoPosicion) {
 						sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
         				//Enviamos un mensaje al Campesino indicandole el nuevo destino
         				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
@@ -188,11 +185,11 @@ void Game::gameLoop() {
 												&posicion_destino);  //Informacion extra
         			    destinoCruz.setX(posicion_destino.x);
         			    destinoCruz.setY(posicion_destino.y);
-        			    _estadoJuego = inactivo;
+        			    _estadoJuego = _estInactivo;
         			} //Estado del juego Esperando Posicion
 
             		//Estado del juego Esperando Recurso
-        			else if (_estadoJuego == esperandoRecurso) {
+        			else if (_estadoJuego == _estEsperandoRecurso) {
         				//Estamos sobre un recurso
         				Objeto* pObjeto = input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level));
         				if (pObjeto!=NULL && (pObjeto->getTipo()==tipoObjeto::Bosque || pObjeto->getTipo()==tipoObjeto::Mina)) {
@@ -209,6 +206,8 @@ void Game::gameLoop() {
 							printf("Empezamos a recolectar %s\n", tipoObjetoToStr(pObjeto->getTipo()).c_str());
 	        			    destinoCruz.setX(pObjeto->getX());
 	        			    destinoCruz.setY(pObjeto->getY());
+	        			    _estadoJuego = _estRecolectando;
+
         				} //If (pObjeto sobre Bosque o Mina)
         				//No estamos sobre un recurso
         				else {
@@ -292,7 +291,7 @@ void Game::gameLoop() {
             			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
 								this->_info.getIconoCampIrA()->getBoundingBox())) {
             				//El estado del juego pasa a Esperando Posicion
-            				_estadoJuego = esperandoPosicion;
+            				_estadoJuego = _estEsperandoPosicion;
             				//Enviamos un mensaje al Campesino para que entre en estado de Ir a un destino
             				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
             										NULL,				 //Objeto* sender
@@ -306,7 +305,7 @@ void Game::gameLoop() {
 								this->_info.getIconoCampRecolectar()->getBoundingBox()))
             			{
             				//El estado del juego pasa a Esperar Recurso
-            				_estadoJuego = esperandoRecurso;
+            				_estadoJuego = _estEsperandoRecurso;
             				//Enviamos un mensaje al Campesino para que entre en estado de recolectar
             				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
             										NULL,				 //Objeto* sender

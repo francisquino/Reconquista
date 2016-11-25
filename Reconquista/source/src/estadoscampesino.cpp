@@ -5,6 +5,7 @@
  *      Author: francis
  */
 
+#include "tipoestadojuego.h"
 #include "estadoscampesino.h"
 #include "estado.h"
 #include "objeto.h"
@@ -13,7 +14,9 @@
 
 #include <iostream>
 
+
 extern Level _level;
+extern tipoEstadoJuego _estadoJuego;
 
 //--------------------------------------- Metodos para campesinoEstadoGlobal
 campesinoEstadoGlobal* campesinoEstadoGlobal::Instance() {
@@ -46,9 +49,8 @@ campesinoEstadoInactivo* campesinoEstadoInactivo::Instance() {
 }
 
 void campesinoEstadoInactivo::entrar(Campesino* pCampesino) {
-	//No se hace nada
-	std::cout << "\nObjeto tipo " << pCampesino->getTipo() << ": "
-	<< "EstadoInactivo esperando orden\n";
+	//std::cout << "\nObjeto tipo " << pCampesino->getTipo() << ": "
+	//<< "EstadoInactivo esperando orden\n";
 }
 
 void campesinoEstadoInactivo::ejecutar(Campesino* pCampesino) {
@@ -68,12 +70,10 @@ bool campesinoEstadoInactivo::OnMessage(Campesino* pCampesino, const Telegrama& 
 	switch(msg._msg)
 	{
 		case _msjIrA:
-			printf("Campesino pasa a estado Ir A. Esperando un destino\n");
 			pCampesino->GetFSM()->cambiarEstado(campesinoEstadoIrDestino::Instance());
 
 			return true;
 		case _msjRecolectar:
-			printf("Campesino pasa a estado Recolectar. Esperando un destino\n");
 			pCampesino->GetFSM()->cambiarEstado(campesinoEstadoRecolectar::Instance());
 
 			return true;
@@ -115,12 +115,12 @@ void campesinoEstadoIrDestino::ejecutar(Campesino* pCampesino) {
 		//Si hemos llegado al destino, inicializamos. Al usar números decimales, damos un margen de 2.0f
 		if(abs(floor(pCampesino->getX() - pCampesino->getDestinoX())) < 2.0f &&
 			abs(floor(pCampesino->getY() - pCampesino->getDestinoY())) < 2.0f) {
-			printf("DESTINO ALCANZADO\n");
+			//printf("DESTINO ALCANZADO\n");
 			pCampesino->stopMoving();
 			pCampesino->setDestino(-1, -1);
 			//printf("Campesino pasa a EstadoInactivo\n");
 			//pCampesino->GetFSM()->cambiarEstado(campesinoEstadoInactivo::Instance());
-			printf("Campesino pasa a estado Anterior\n");
+			//printf("Campesino pasa a estado Anterior\n");
 			pCampesino->GetFSM()->cambiarAEstadoPrevio();
 		}
 	}
@@ -139,7 +139,7 @@ bool campesinoEstadoIrDestino::OnMessage(Campesino* pCampesino, const Telegrama&
 		case _msjDestinoFijado:
 			//Obtener coordenadas del destino en el telegrama
 			sf::Vector2i* destino = (sf::Vector2i*)msg._extraInfo;
-			printf("Campesino pasa a estado Ir Destino: (%i, %i)\n", destino->x, destino->y);
+			//printf("Campesino pasa a estado Ir Destino: (%i, %i)\n", destino->x, destino->y);
 			pCampesino->setDestino(destino->x, destino->y);
 
 			return true;
@@ -156,10 +156,10 @@ campesinoEstadoRecolectar* campesinoEstadoRecolectar::Instance() {
 }
 
 void campesinoEstadoRecolectar::entrar(Campesino* pCampesino) {
-	printf("\nEntramos en Estado Recolectar\n");
+	//printf("\nEntramos en Estado Recolectar\n");
 	//Si el objeto no esta ya localizado sobre un recurso se debe esperar un destino
 	if (pCampesino->getRecursoRecolectar() == NULL) {
-		printf("\nCampesino espera como destino un recurso para recolectar\n");
+		//printf("\nCampesino espera como destino un recurso para recolectar\n");
 		pCampesino->GetFSM()->cambiarEstado(campesinoEstadoIrDestino::Instance());
 	}
 	else {
@@ -174,6 +174,10 @@ void campesinoEstadoRecolectar::entrar(Campesino* pCampesino) {
 			printf("\nCampesino empieza a recolectar\n");
 		//Si estamos situados sobre el ayuntamiento, nos desplazamos al recurso
 		else if (pObjeto!=NULL && pObjeto->getTipo()==tipoObjeto::Ayuntamiento) {
+			//Enviar un mensaje al ayuntamiento para aumentar sus recursos
+
+			printf("Campesino deja en Ayuntamiento %i %s\n", pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial()), materialToStr(pCampesino->getTipoMaterial()).c_str());
+			pCampesino->modificarCantidadMaterial(pCampesino->getTipoMaterial(), -1*pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial()));
 			printf("Regresar a %s\n", tipoObjetoToStr(recurso->getTipo()).c_str());
 			sf::Vector2i posicion_destino = sf::Vector2i (recurso->getX(), recurso->getY());
 			Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
@@ -189,16 +193,21 @@ void campesinoEstadoRecolectar::ejecutar(Campesino* pCampesino) {
 	Objeto* recurso = pCampesino->getRecursoRecolectar();
 	tipoMaterial::TipoMaterial material = recurso->getTipoMaterial();
 
-	//Cargamos el material
-	pCampesino->modificarCantidadMaterial(material, pCampesino->cargaMaterialMaxima(material));
-	recurso->modificarCantidadMaterial(material, -(pCampesino->cargaMaterialMaxima(material)));
-	printf("%s disponible %i\n", materialToStr(recurso->getTipoMaterial()).c_str(), recurso->getCantidadMaterial(material));
+	//Si queda material en el recurso, cargamos el material
+	//Si ya no queda material, borramos el recurso del campesino.
+	if (recurso->getCantidadMaterial(material)>0) {
+		pCampesino->modificarCantidadMaterial(material, pCampesino->cargaMaterialMaxima(material));
+		recurso->modificarCantidadMaterial(material, -1*pCampesino->cargaMaterialMaxima(material));
+		printf("%s disponible %i\n", materialToStr(recurso->getTipoMaterial()).c_str(), recurso->getCantidadMaterial(material));
+	}
 
 	//Si ya no queda material, borramos el recurso del campesino.
 	if (recurso->getCantidadMaterial(material)<=0) {
 		pCampesino->setRecursoRecolectar(NULL);
 		printf("Recurso agotado\n");
 		pCampesino->GetFSM()->cambiarEstado(campesinoEstadoInactivo::Instance());
+
+		_estadoJuego=_estInactivo;
 	}
 
 	//Si hemos recolectado algo de material, ir al ayuntamiento a depositarlo
@@ -227,8 +236,8 @@ void campesinoEstadoRecolectar::ejecutar(Campesino* pCampesino) {
 }
 
 void campesinoEstadoRecolectar::salir(Campesino* pCampesino) {
-	std::cout << "\nObjeto tipo " << tipoObjetoToStr(pCampesino->getTipo()) << ": "
-	<< "Saliendo de EstadoRecolectar\n";
+	//std::cout << "\nObjeto tipo " << tipoObjetoToStr(pCampesino->getTipo()) << ": "
+	//<< "Saliendo de EstadoRecolectar\n";
 }
 
 bool campesinoEstadoRecolectar::OnMessage(Campesino* pCampesino, const Telegrama& msg)
@@ -238,7 +247,7 @@ bool campesinoEstadoRecolectar::OnMessage(Campesino* pCampesino, const Telegrama
 		case _msjDestinoFijado:
 			sf::Vector2i* destino = (sf::Vector2i*)msg._extraInfo;
 			pCampesino->setDestino(destino->x, destino->y);
-			printf("Campesino pasa a estado temporal Ir Destino: (%i, %i)\n", destino->x, destino->y);
+			//printf("Campesino pasa a estado temporal Ir Destino: (%i, %i)\n", destino->x, destino->y);
 			pCampesino->GetFSM()->cambiarEstado(campesinoEstadoIrDestino::Instance());
 
 			return true;

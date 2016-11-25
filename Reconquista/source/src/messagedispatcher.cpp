@@ -14,7 +14,7 @@
 using std::set;
 
 //uncomment below to send message info to the debug window
-#define SHOW_MESSAGING_INFO
+//#define SHOW_MESSAGING_INFO
 
 //--------------------------- Instance ----------------------------------------
 //

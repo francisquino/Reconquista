@@ -495,7 +495,6 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 }
 
 void Level::update(int elapsedTime) {
-	printf("------ U P D A T E ------\n");
 	this->_ayuntamiento->update(elapsedTime);
 
     for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {

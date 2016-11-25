@@ -123,7 +123,8 @@ class Objeto : public AnimatedSprite {
 		int cargaMaterialMaxima(tipoMaterial::TipoMaterial material) { return this->_cargaMaxima[material]; }
 		//Cantidad de material que se transporta o se almacena
 		int getCantidadMaterial(tipoMaterial::TipoMaterial material) { return this->_materiales[material];}
-		//El tipo de material que proporciona un recurso. Esta pensada para los recursos (mina y bosque)
+		//El tipo de material que proporciona un recurso. Esta pensada para los recursos (mina y bosque).
+		//También informa del material que esta transportando un campesino
 		virtual tipoMaterial::TipoMaterial getTipoMaterial();
 
 		void sumarUnidad(Objeto* unidad);
