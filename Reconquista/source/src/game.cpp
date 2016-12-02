@@ -206,13 +206,6 @@ void Game::gameLoop() {
 								objetoSeleccionado->setDestino(destinoCoord);
 							}
 
-							//Enviamos un mensaje al Campesino indicandole el nuevo destino
-							Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
-													NULL,				 //Objeto* sender
-													objetoSeleccionado,   //Objeto* recipient
-													_msjDestinoFijado,//the message
-													NULL);  //Informacion extra
-
 							destinoCruz.setX(posicionDestino.x);
 							destinoCruz.setY(posicionDestino.y);
 							_estadoJuego = _estInactivo;
@@ -224,34 +217,66 @@ void Game::gameLoop() {
         				//Estamos sobre un recurso
         				Objeto* pObjeto = input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &(_level));
         				if (pObjeto!=NULL && (pObjeto->getTipo()==tipoObjeto::Bosque || pObjeto->getTipo()==tipoObjeto::Mina)) {
-        					printf("Posicion recurso %f %f\n", pObjeto->getX(), pObjeto->getY());
-        					//sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Vector2i(pObjeto->getX(), pObjeto->getY()));							//El cursor está sobre un recurso. Enviamos un mensaje al Campesino indicandole el nuevo recurso
-        					sf::Vector2i posicion_destino = sf::Vector2i (pObjeto->getX(), pObjeto->getY());
-            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
-            										pObjeto,				//Objeto* sender
-    												objetoSeleccionado,   	//Objeto* recipient
-    												_msjDestinoFijado,		//the message
-    												&posicion_destino);		//Informacion extra
 							//Hacemos Downcasting para poder trabajar con el ObjetoSeleccionado como un Campesino
         					dynamic_cast<Campesino*>(objetoSeleccionado)->setRecursoRecolectar(pObjeto);
-							printf("Empezamos a recolectar %s\n", tipoObjetoToStr(pObjeto->getTipo()).c_str());
-	        			    destinoCruz.setX(pObjeto->getX());
-	        			    destinoCruz.setY(pObjeto->getY());
-	        			    _estadoJuego = _estRecolectando;
+							//printf("Empezamos a recolectar %s\n", tipoObjetoToStr(pObjeto->getTipo()).c_str());
+
+        					sf::Vector2i posicionDestino = sf::Vector2i (pObjeto->getX(), pObjeto->getY());
+    						posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
+    						posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
+
+    						//Calculamos la ruta a recorrer con el algoritmo A*
+    						//Primero pasamos las coordenadas del terreno a las del mapa
+    						sf::Vector2i origenMapa = _level.coordAMapa(objetoSeleccionado->getX(), objetoSeleccionado->getY());
+    						sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
+
+    						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+    						//La ruta no devuelve nada porque el destino es un recurso, que esta marcado como 1, no alcanzable
+
+    						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
+    							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
+
+    							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (pasos, origenMapa);
+
+    							for (unsigned int i=0; i<rutaSimple.size(); i++) {
+    								sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
+    								//Cada desplazamiento lo almacenamos en la ruta del objeto
+    								objetoSeleccionado->setDestino(destinoCoord);
+    							}
+
+    	        			    destinoCruz.setX(pObjeto->getX());
+    	        			    destinoCruz.setY(pObjeto->getY());
+    	        			    _estadoJuego = _estRecolectando;
+    						}
 
         				} //If (pObjeto sobre Bosque o Mina)
         				//No estamos sobre un recurso
         				else {
         					//Nos dirigimos al punto marcado
-    						sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
-            				//Enviamos un mensaje al Campesino indicandole el nuevo destino
-            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,	 	//time delay
-            										NULL,					 	//Objeto* sender
-    												objetoSeleccionado,   		//Objeto* recipient
-    												_msjDestinoFijado,			//the message
-    												&posicion_destino);  		//Informacion extra
-            			    destinoCruz.setX(posicion_destino.x);
-            			    destinoCruz.setY(posicion_destino.y);
+    						sf::Vector2i posicionDestino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
+    						posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
+    						posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
+
+    						//Calculamos la ruta a recorrer con el algoritmo A*
+    						//Primero pasamos las coordenadas del terreno a las del mapa
+    						sf::Vector2i origenMapa = _level.coordAMapa(objetoSeleccionado->getX(), objetoSeleccionado->getY());
+    						sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
+
+    						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+    						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
+    							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
+
+    							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (pasos, origenMapa);
+
+    							for (unsigned int i=0; i<rutaSimple.size(); i++) {
+    								sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
+    								//Cada desplazamiento lo almacenamos en la ruta del objeto
+    								objetoSeleccionado->setDestino(destinoCoord);
+    							}
+
+    							destinoCruz.setX(posicionDestino.x);
+    							destinoCruz.setY(posicionDestino.y);
+    						}
         				}
         			} //Estado del juego Esperando Recurso
 

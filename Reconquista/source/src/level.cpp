@@ -973,8 +973,10 @@ std::vector<sf::Vector2i> Level::simplificarRutaCoord (std::vector<sf::Vector2i>
 			puntoB = ruta[j];
 			puntoC = ruta[i];
 
+			//Obtenemos la direccion de cada par de puntos (de A a B y de B a C)
 			dir1 = puntoB - puntoA;
 			dir2 = puntoC - puntoB;
+			//Si cambia la direccion, guardamos el punto B
 			if (dir1 != dir2) {
 				rutaSimple.push_back(puntoB);
 				printf ("Ruta simplificada [%i,%i]\n", puntoB.x, puntoB.y);

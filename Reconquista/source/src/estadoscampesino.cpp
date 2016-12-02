@@ -117,7 +117,7 @@ void campesinoEstadoIrDestino::ejecutar(Campesino* pCampesino) {
 
 			//Si no quedan puntos en la ruta, nos paramos y pasamos al estado previo
 			if (!pCampesino->getDestinoX() && !pCampesino->getDestinoY()) {
-				//printf("DESTINO ALCANZADO\n");
+				printf("DESTINO ALCANZADO\n");
 				pCampesino->stopMoving();
 				//pCampesino->setDestino(-1, -1);
 				pCampesino->GetFSM()->cambiarAEstadoPrevio();
@@ -137,12 +137,6 @@ bool campesinoEstadoIrDestino::OnMessage(Campesino* pCampesino, const Telegrama&
 	switch(msg._msg)
 	{
 		case _msjDestinoFijado:
-			printf ("Destino fijado\n");
-			//Obtener coordenadas del destino en el telegrama
-			sf::Vector2i* destino = (sf::Vector2i*)msg._extraInfo;
-
-			//pCampesino->setDestino(destino->x, destino->y);
-
 			return true; //_msjDestinoParcial
 	}//end switch
   //send msg to global message handler
@@ -160,7 +154,7 @@ void campesinoEstadoRecolectar::entrar(Campesino* pCampesino) {
 	//printf("\nEntramos en Estado Recolectar\n");
 	//Si el objeto no esta ya localizado sobre un recurso se debe esperar un destino
 	if (pCampesino->getRecursoRecolectar() == NULL) {
-		//printf("\nCampesino espera como destino un recurso para recolectar\n");
+		printf("\nCampesino espera como destino un recurso para recolectar\n");
 		pCampesino->GetFSM()->cambiarEstado(campesinoEstadoIrDestino::Instance());
 	}
 	else {
