@@ -186,6 +186,8 @@ void Game::gameLoop() {
             		//Estado del juego Esperando Posicion
         			else if (_estadoJuego == _estEsperandoPosicion) {
 						sf::Vector2i posicionDestino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
+						posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
+						posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
 
 						//Calculamos la ruta a recorrer con el algoritmo A*
 						//Primero pasamos las coordenadas del terreno a las del mapa
@@ -193,14 +195,13 @@ void Game::gameLoop() {
 						sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
 
 						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
-						if (ruta.c_str()!="") {
-							printf ("Ruta %s\n", ruta.c_str());
-
+						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
 							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
-							for (unsigned int i=0; i<pasos.size(); i++) {
-								sf::Vector2i destinoCoord = _level.mapaACoord(pasos[i].x, pasos[i].y);
-								printf ("[%i,%i] -> [%i,%i]\n", pasos[i].x, pasos[i].y, destinoCoord.x, destinoCoord.y);
 
+							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (pasos, origenMapa);
+
+							for (unsigned int i=0; i<rutaSimple.size(); i++) {
+								sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
 								//Cada desplazamiento lo almacenamos en la ruta del objeto
 								objetoSeleccionado->setDestino(destinoCoord);
 							}
@@ -210,14 +211,9 @@ void Game::gameLoop() {
 													NULL,				 //Objeto* sender
 													objetoSeleccionado,   //Objeto* recipient
 													_msjDestinoFijado,//the message
-													&posicionDestino);  //Informacion extra
+													NULL);  //Informacion extra
 
-							printf ("Tile size x %i\n", _level.getTileSize().x);
-							printf ("Posicion destino x %i\n", posicionDestino.x);
-							posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
-							printf ("Posicion destino x DESPUES %i\n", posicionDestino.x);
 							destinoCruz.setX(posicionDestino.x);
-							posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
 							destinoCruz.setY(posicionDestino.y);
 							_estadoJuego = _estInactivo;
 						}

@@ -950,9 +950,42 @@ std::vector<sf::Vector2i> Level::rutaACoordenadas (std::string ruta, sf::Vector2
 		x = x+dx[dir];
 		y = y+dy[dir];
 		listaCoordenadas.push_back(sf::Vector2i(x, y));
+		printf("Ruta [%i, %i]\n", x, y);
 	}
 
 	return listaCoordenadas;
+}
+
+
+//Simplificar la ruta de coordenadas, eliminando los desplazamientos irrelevantes
+std::vector<sf::Vector2i> Level::simplificarRutaCoord (std::vector<sf::Vector2i> ruta,  sf::Vector2i origen) {
+	std::vector<sf::Vector2i> rutaSimple;
+	unsigned int j;
+
+	sf::Vector2i dir1, dir2;
+	sf::Vector2i puntoA = origen;
+	sf::Vector2i puntoB;
+	sf::Vector2i puntoC;
+
+	if (ruta.size()>=2) {
+		j=0;
+		for (unsigned int i=j+1; i<ruta.size(); i++) {
+			puntoB = ruta[j];
+			puntoC = ruta[i];
+
+			dir1 = puntoB - puntoA;
+			dir2 = puntoC - puntoB;
+			if (dir1 != dir2) {
+				rutaSimple.push_back(puntoB);
+				printf ("Ruta simplificada [%i,%i]\n", puntoB.x, puntoB.y);
+			}
+			puntoA = puntoB;
+			j++;
+		}
+		rutaSimple.push_back(puntoC);
+		printf ("Ruta simplificada [%i,%i]\n", puntoC.x, puntoC.y);
+	}
+	return rutaSimple;
 }
 
 

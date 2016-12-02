@@ -51,6 +51,9 @@ public:
 	//Transformar la ruta devuelta por pathFind a coordenadas
 	std::vector<sf::Vector2i> rutaACoordenadas (std::string ruta, sf::Vector2i origen);
 
+	//Simplificar la ruta de coordenadas, eliminando los desplazamientos irrelevantes
+	std::vector<sf::Vector2i> simplificarRutaCoord (std::vector<sf::Vector2i> ruta,  sf::Vector2i origen);
+
     //Pasar de las coordenadas del terreno a las del mapa de obtencion de rutas
     sf::Vector2i coordAMapa(int x, int y);
     //Pasar de las coordenadas del mapa de obtencion de rutas a las del terreno
