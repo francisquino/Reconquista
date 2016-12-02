@@ -27,22 +27,16 @@ inline std::string msjToStr(int msg)
 	{
 		case _msjIrA:
 			return "IrA";
-
 		case _msjRecolectar:
 			return "Recolectar";
-
 		case _msjNoHayRecurso:
 			return "NoHayRecurso";
-
 		case _msjDestinoFijado:
 			return "DestinoFijado";
-
 		case _msjDesplazarseARecurso:
 			return "DesplazarseARecurso";
-
 		case _msjRecursoFijado:
 			return "RecursoFijado";
-
 		default:
 			return "No reconocido!";
 	}

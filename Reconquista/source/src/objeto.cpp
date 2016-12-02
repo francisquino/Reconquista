@@ -34,8 +34,7 @@ Objeto::Objeto(Graphics &graphics, tipoObjeto::TipoObjeto tipo, std::string file
 					_tipo(tipo),
 					_dx(0),
 					_dy(0),
-					_destinoX(-1),
-					_destinoY(-1),
+					_ruta(),
                     _facing(LEFT),
 					_seleccionado(false),
                     _maxHealth(maxHealth),
@@ -114,9 +113,10 @@ void Objeto::stopMoving() {
     else this->playAnimation("IdleDown");
 }
 
-void Objeto::setDestino(const float destinoX, const float destinoY) {
-	this->_destinoX = destinoX;
-	this->_destinoY = destinoY;
+void Objeto::setDestino(const sf::Vector2i destino) { //const float destinoX, const float destinoY) {
+	//this->_destinoX = destinoX;
+	//this->_destinoY = destinoY;
+	this->_ruta.push_back(destino);
 }
 
 void Objeto::setSeleccionado(const bool seleccionado) {

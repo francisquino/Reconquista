@@ -128,4 +128,3 @@ Objeto* Input::cursorSobreObjeto(sf::Vector2i posicion, Level* pLevel) {
 	//No esta sobre ningun objeto
 	return NULL;
 } //sobreObjeto
-

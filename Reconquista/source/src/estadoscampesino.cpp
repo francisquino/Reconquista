@@ -65,8 +65,6 @@ void campesinoEstadoInactivo::salir(Campesino* pCampesino) {
 
 bool campesinoEstadoInactivo::OnMessage(Campesino* pCampesino, const Telegrama& msg)
 {
-	//SetTextColor(BACKGROUND_RED|FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
-
 	switch(msg._msg)
 	{
 		case _msjIrA:
@@ -97,8 +95,8 @@ void campesinoEstadoIrDestino::entrar(Campesino* pCampesino) {
 }
 
 void campesinoEstadoIrDestino::ejecutar(Campesino* pCampesino) {
-	//Si hay un destino fijado, movernos hacia él.
-	if (pCampesino->getDestinoX() != -1 && pCampesino->getDestinoY() != -1) {
+	//Si hay una ruta, movernos al primer punto.
+	if (pCampesino->getDestinoX() && pCampesino->getDestinoY()) {
 		if(pCampesino->getX() < pCampesino->getDestinoX()) {
 			pCampesino->moveRight();
 		}
@@ -115,13 +113,15 @@ void campesinoEstadoIrDestino::ejecutar(Campesino* pCampesino) {
 		//Si hemos llegado al destino, inicializamos. Al usar números decimales, damos un margen de 2.0f
 		if(abs(floor(pCampesino->getX() - pCampesino->getDestinoX())) < 2.0f &&
 			abs(floor(pCampesino->getY() - pCampesino->getDestinoY())) < 2.0f) {
-			//printf("DESTINO ALCANZADO\n");
-			pCampesino->stopMoving();
-			pCampesino->setDestino(-1, -1);
-			//printf("Campesino pasa a EstadoInactivo\n");
-			//pCampesino->GetFSM()->cambiarEstado(campesinoEstadoInactivo::Instance());
-			//printf("Campesino pasa a estado Anterior\n");
-			pCampesino->GetFSM()->cambiarAEstadoPrevio();
+			pCampesino->deleteDestino();
+
+			//Si no quedan puntos en la ruta, nos paramos y pasamos al estado previo
+			if (!pCampesino->getDestinoX() && !pCampesino->getDestinoY()) {
+				//printf("DESTINO ALCANZADO\n");
+				pCampesino->stopMoving();
+				//pCampesino->setDestino(-1, -1);
+				pCampesino->GetFSM()->cambiarAEstadoPrevio();
+			}
 		}
 	}
 }
@@ -137,12 +137,13 @@ bool campesinoEstadoIrDestino::OnMessage(Campesino* pCampesino, const Telegrama&
 	switch(msg._msg)
 	{
 		case _msjDestinoFijado:
+			printf ("Destino fijado\n");
 			//Obtener coordenadas del destino en el telegrama
 			sf::Vector2i* destino = (sf::Vector2i*)msg._extraInfo;
-			//printf("Campesino pasa a estado Ir Destino: (%i, %i)\n", destino->x, destino->y);
-			pCampesino->setDestino(destino->x, destino->y);
 
-			return true;
+			//pCampesino->setDestino(destino->x, destino->y);
+
+			return true; //_msjDestinoParcial
 	}//end switch
   //send msg to global message handler
   return false;
@@ -246,7 +247,7 @@ bool campesinoEstadoRecolectar::OnMessage(Campesino* pCampesino, const Telegrama
 	{
 		case _msjDestinoFijado:
 			sf::Vector2i* destino = (sf::Vector2i*)msg._extraInfo;
-			pCampesino->setDestino(destino->x, destino->y);
+			pCampesino->setDestino(*destino);
 			//printf("Campesino pasa a estado temporal Ir Destino: (%i, %i)\n", destino->x, destino->y);
 			pCampesino->GetFSM()->cambiarEstado(campesinoEstadoIrDestino::Instance());
 

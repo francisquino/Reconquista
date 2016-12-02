@@ -51,6 +51,10 @@ tipoCursor _tipoCursor = puntero;
 
 Game::Game() {
     this->gameLoop();
+
+    //Borrar el mapa usado para las busquedas de rutas en este nivel
+    delete[] _level.mapa[0];
+    delete[] _level.mapa;
 }
 
 Game::~Game() {
@@ -60,6 +64,11 @@ void Game::gameLoop() {
     Graphics graphics;
     Input input;
     sf::Event event;
+    sf::Font font;
+
+    font.loadFromFile("content/fonts/04B_30__.TTF");
+
+
     destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, 0, 0);
 
     _estadoJuego = _estInactivo;
@@ -176,16 +185,42 @@ void Game::gameLoop() {
 
             		//Estado del juego Esperando Posicion
         			else if (_estadoJuego == _estEsperandoPosicion) {
-						sf::Vector2i posicion_destino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
-        				//Enviamos un mensaje al Campesino indicandole el nuevo destino
-        				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
-        										NULL,				 //Objeto* sender
-												objetoSeleccionado,   //Objeto* recipient
-												_msjDestinoFijado,//the message
-												&posicion_destino);  //Informacion extra
-        			    destinoCruz.setX(posicion_destino.x);
-        			    destinoCruz.setY(posicion_destino.y);
-        			    _estadoJuego = _estInactivo;
+						sf::Vector2i posicionDestino = (sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow()));
+
+						//Calculamos la ruta a recorrer con el algoritmo A*
+						//Primero pasamos las coordenadas del terreno a las del mapa
+						sf::Vector2i origenMapa = _level.coordAMapa(objetoSeleccionado->getX(), objetoSeleccionado->getY());
+						sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
+
+						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+						if (ruta.c_str()!="") {
+							printf ("Ruta %s\n", ruta.c_str());
+
+							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
+							for (unsigned int i=0; i<pasos.size(); i++) {
+								sf::Vector2i destinoCoord = _level.mapaACoord(pasos[i].x, pasos[i].y);
+								printf ("[%i,%i] -> [%i,%i]\n", pasos[i].x, pasos[i].y, destinoCoord.x, destinoCoord.y);
+
+								//Cada desplazamiento lo almacenamos en la ruta del objeto
+								objetoSeleccionado->setDestino(destinoCoord);
+							}
+
+							//Enviamos un mensaje al Campesino indicandole el nuevo destino
+							Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, //time delay
+													NULL,				 //Objeto* sender
+													objetoSeleccionado,   //Objeto* recipient
+													_msjDestinoFijado,//the message
+													&posicionDestino);  //Informacion extra
+
+							printf ("Tile size x %i\n", _level.getTileSize().x);
+							printf ("Posicion destino x %i\n", posicionDestino.x);
+							posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
+							printf ("Posicion destino x DESPUES %i\n", posicionDestino.x);
+							destinoCruz.setX(posicionDestino.x);
+							posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
+							destinoCruz.setY(posicionDestino.y);
+							_estadoJuego = _estInactivo;
+						}
         			} //Estado del juego Esperando Posicion
 
             		//Estado del juego Esperando Recurso
@@ -416,7 +451,7 @@ void Game::draw(Graphics& graphics) {
     //this->_player.draw(graphics);
 
     //Si hay destino fijado, dibujarlo
-    if (objetoSeleccionado!=NULL && objetoSeleccionado->getDestinoX() != -1 && objetoSeleccionado->getDestinoY() != -1) {
+    if (objetoSeleccionado && objetoSeleccionado->getDestinoX() && objetoSeleccionado->getDestinoY()) {
         graphics.getWindow().setView(*graphics.getView(Juego));
     	destinoCruz.draw(graphics, destinoCruz.getX(), destinoCruz.getY());
     }
@@ -463,6 +498,8 @@ void Game::draw(Graphics& graphics) {
     		break;
     }
     //this->_hud.draw(graphics);
+
+    graphics.getWindow().setView(*graphics.getView(Juego));
 
     graphics.flip();
 }

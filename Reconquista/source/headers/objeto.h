@@ -103,9 +103,12 @@ class Objeto : public AnimatedSprite {
 		void moveUp();
 		void stopMoving();
 
-		void setDestino(const float destinoX, const float destinoY);
-		const float getDestinoX() const { return this->_destinoX; }
-		const float getDestinoY() const { return this->_destinoY; }
+		//Añade un punto a la ruta
+		void setDestino(const sf::Vector2i destino);
+		const float getDestinoX() const { if (this->_ruta.size()>0) return this->_ruta[0].x; else return NULL; }
+		const float getDestinoY() const { if (this->_ruta.size()>0) return this->_ruta[0].y; else return NULL; }
+		//Borrar el primer punto de la ruta
+		void deleteDestino() { this->_ruta.erase(this->_ruta.begin()); }
 
 		bool getSeleccionado() const { return this->_seleccionado; }
 		void setSeleccionado(const bool seleccionado);
@@ -134,7 +137,10 @@ class Objeto : public AnimatedSprite {
 	protected:
 		tipoObjeto::TipoObjeto _tipo;
 
-		float _dx, _dy, _destinoX, _destinoY;
+		float _dx, _dy; //, _destinoX, _destinoY;
+
+		//Almacena pares de coordenadas a los que se debe desplazar el objeto para seguir una ruta
+		std::vector<sf::Vector2i> _ruta;
 
 		Direction _facing;
 
