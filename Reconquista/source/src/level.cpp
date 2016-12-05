@@ -534,13 +534,13 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
     }
 
     //Dibujar mapar de rutas
-    /*
+
 	for (int j = 0; j < mMapaBuscarRutas; j++) {
 		for (int i = 0; i < nMapaBuscarRutas; i++)
 			printf ("%i",mapa[i][j]);
 		printf ("\n");
 	}
-	*/
+
 }
 
 void Level::update(int elapsedTime) {
@@ -934,6 +934,175 @@ std::string Level::pathFind( const int & xStart, const int & yStart,
 
     return ""; // No encontrada ruta
 } //pathFind
+
+
+// Devuelve la posicion accesible mas cercana, en una ruta, a un punto que no es accesible
+// Vamos a utilizar el algoritmo A*, pero haciendo el recorrido inverso: desde el final al inicio
+sf::Vector2i Level::posicionAccesibleMasCercana( const int & xStart, const int & yStart, const int & xFinish, const int & yFinish ) {
+    static std::priority_queue<Nodo> pq[2]; //Lista de nodos abiertos (todavia no evaluados)
+    int** mapaNodosCerrados;
+    int** mapaNodosAbiertos;
+    int** mapaDir;
+    static int pqi; //Indice de pq
+    static Nodo* n0;
+    static Nodo* m0;
+    static int i, x, y, xdx, ydy;
+    bool accesible = false; //Condicion de finalizacion de busqueda
+    sf::Vector2i posicion;
+
+    pqi=0;
+
+    // Inicia los nodos de los mapas. Se vuelve tan complicado al ser array 2D sin conocer el tamaño inicialmente
+    mapaNodosCerrados = new int*[nMapaBuscarRutas];
+    mapaNodosCerrados[0] = new int[nMapaBuscarRutas * mMapaBuscarRutas];
+    for (int i = 1; i < nMapaBuscarRutas; i++) {
+    	mapaNodosCerrados[i] = mapaNodosCerrados[i-1] + mMapaBuscarRutas;
+    	for (int j = 1; j < mMapaBuscarRutas; j++)
+            mapaNodosCerrados[i][j]=0;
+    }
+
+	mapaNodosAbiertos = new int*[nMapaBuscarRutas];
+	mapaNodosAbiertos[0] = new int[nMapaBuscarRutas * mMapaBuscarRutas];
+	for (int i = 1; i < nMapaBuscarRutas; i++) {
+		mapaNodosAbiertos[i] = mapaNodosAbiertos[i-1] + mMapaBuscarRutas;
+		for (int j = 1; j < mMapaBuscarRutas; j++)
+			mapaNodosAbiertos[i][j]=0;
+	}
+
+	mapaDir = new int*[nMapaBuscarRutas];
+	mapaDir[0] = new int[nMapaBuscarRutas * mMapaBuscarRutas];
+	for (int i = 1; i < nMapaBuscarRutas; i++) {
+		mapaDir[i] = mapaDir[i-1] + mMapaBuscarRutas;
+		for (int j = 1; j < mMapaBuscarRutas; j++)
+			mapaDir[i][j]=0;
+	}
+
+    // Crear el nodo inicial e insertarlo en la lista de nodos abiertos. Tomamos la posicion final como inicio
+    n0=new Nodo(xFinish, yFinish, 0, 0);
+    n0->updatePrioridad(xStart, yStart);
+    pq[pqi].push(*n0);
+    mapaNodosAbiertos[x][y]=n0->getPrioridad(); // Marcarlo en el mapa de nodos abiertos
+	delete n0;
+
+    // Busqueda A*
+    while(!pq[pqi].empty()) // Mientras haya algun nodo en la lista de nodos abiertos
+    {
+        // Obtener el actual nodo con la mas alta prioridad de la lista de nodos abiertos
+        n0=new Nodo( pq[pqi].top().getxPos(), pq[pqi].top().getyPos(),
+                     pq[pqi].top().getDistancia(), pq[pqi].top().getPrioridad());
+
+        x=n0->getxPos(); y=n0->getyPos();
+
+        pq[pqi].pop(); // Eliminar el nodo de la lista abierta
+        mapaNodosAbiertos[x][y]=0;
+        // Marcarlo en el mapa de nodos cerrados
+        mapaNodosCerrados[x][y]=1;
+
+        // Parar de buscar cuando hemos alcanzado algún nodo que es accesible
+        if(accesible)
+        {
+        	//Sacamos de la lista de nodos abiertos hasta que cogemos uno accesible
+        	while (mapa[x][y]!=0) {
+                n0=new Nodo( pq[pqi].top().getxPos(), pq[pqi].top().getyPos(),
+                             pq[pqi].top().getDistancia(), pq[pqi].top().getPrioridad());
+
+                x=n0->getxPos(); y=n0->getyPos();
+
+                pq[pqi].pop(); // Eliminar el nodo de la lista abierta
+        	}
+
+        	posicion.x = x;
+        	posicion.y = y;
+            // Recolectar basura
+            delete n0;
+            // Vaciar los nodos sobrantes
+            while(!pq[pqi].empty()) pq[pqi].pop();
+
+            delete[] mapaDir[0];
+            delete[] mapaDir;
+            delete[] mapaNodosAbiertos[0];
+            delete[] mapaNodosAbiertos;
+            delete[] mapaNodosCerrados[0];
+            delete[] mapaNodosCerrados;
+
+            // Solo devolvemos una posición. Tomar Generar la ruta desde el fin al inicio siguiendo las direcciones
+            return posicion;
+        } //Parar de buscar al alcanzar la meta
+
+        // Generar movimientos (nodos hijos) en todas las direcciones posibles
+        for(i=0;i<dir;i++)
+        {
+        	//xdx es la coord. x del nuevo nodo (x + el desplazamiento x) ydy es la coord. y del nuevo nodo (y + el desplazamiento y)
+            xdx=x+dx[i];
+            ydy=y+dy[i];
+
+            //Si la casilla que estamos evaluando ya es accesible, evaluamos las del for, pero no evaluamos mas
+            if (mapa[xdx][ydy]==0) accesible = true;
+
+            //Si las coordenadas del nodo hijo (xdx, ydy) estan dentro de las coordenadas del mapa
+            if(!(xdx<0 || xdx>nMapaBuscarRutas-1 || ydy<0 || ydy>mMapaBuscarRutas-1))
+            {
+                // Generar un nuevo nodo hijo, calculando la distancia y la prioridad
+                m0=new Nodo( xdx, ydy, n0->getDistancia(),
+                             n0->getPrioridad());
+                m0->nextDistancia(dir, i);
+                m0->updatePrioridad(xFinish, yFinish);
+
+                // Si no esta en la lista abierta (no evaluados), añadirlo
+                if(mapaNodosAbiertos[xdx][ydy]==0)
+                {
+                    mapaNodosAbiertos[xdx][ydy]=m0->getPrioridad();
+                    pq[pqi].push(*m0);
+                    delete m0; // Only <-- new added by commenter // mark its parent Nodo direction
+                    mapaDir[xdx][ydy]=(i+dir/2)%dir;
+                }
+                // Ya esta en el mapa de nodos abiertos
+                else if(mapaNodosAbiertos[xdx][ydy]>m0->getPrioridad())
+                {
+                    // Actualizar la informacion de prioridad
+                    mapaNodosAbiertos[xdx][ydy]=m0->getPrioridad();
+                    // Actualizar la informacion de direccion del padre
+                    mapaDir[xdx][ydy]=(i+dir/2)%dir;
+
+                    // Sustituir el nodo
+                    // vaciando una cola de prioridad a la otra    		by emptying one pq to the other one
+                    // excepto el nodo a ser sutituido sera ignorado	except the Nodo to be replaced will be ignored
+                    // y el nuevo nodo sera insertado en su lugar		and the new Nodo will be pushed in instead
+                    while(!(pq[pqi].top().getxPos()==xdx &&
+                           pq[pqi].top().getyPos()==ydy))
+                    {
+                        pq[1-pqi].push(pq[pqi].top());
+                        pq[pqi].pop();
+                    }
+                    pq[pqi].pop(); // Remover el nodo buscado			remove the wanted Nodo
+
+                    // Vaciar el mayor tamaño pq al mas pequeño			empty the larger size pq to the smaller one
+                    if(pq[pqi].size()>pq[1-pqi].size()) pqi=1-pqi;
+                    while(!pq[pqi].empty())
+                    {
+                        pq[1-pqi].push(pq[pqi].top());
+                        pq[pqi].pop();
+                    }
+                    pqi=1-pqi;
+                    pq[pqi].push(*m0);	// Solo el segundo elemento añadido nuevo			only 2nd item added new
+                    delete m0; // Añadir el mejor nodo en su lugar			add the better Nodo instead
+                }
+                else delete m0; // Recoleccion de basura
+            }
+        }
+        delete n0; // Recoleccion de basura
+    }
+
+    delete[] mapaDir[0];
+    delete[] mapaDir;
+    delete[] mapaNodosAbiertos[0];
+    delete[] mapaNodosAbiertos;
+    delete[] mapaNodosCerrados[0];
+    delete[] mapaNodosCerrados;
+
+    return posicion; // No encontrada posicion
+} //posicionAccesibleMasCercana
+
 
 //Transformar la ruta devuelta por pathFind a coordenadas
 std::vector<sf::Vector2i> Level::rutaACoordenadas (std::string ruta, sf::Vector2i origen) {

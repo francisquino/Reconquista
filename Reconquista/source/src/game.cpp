@@ -229,9 +229,14 @@ void Game::gameLoop() {
     						//Primero pasamos las coordenadas del terreno a las del mapa
     						sf::Vector2i origenMapa = _level.coordAMapa(objetoSeleccionado->getX(), objetoSeleccionado->getY());
     						sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
+    						//printf("Origen [%i,%i] Destino [%i,%i]\n", origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
 
-    						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
-    						//La ruta no devuelve nada porque el destino es un recurso, que esta marcado como 1, no alcanzable
+    						//Como el destino es una posicion del mapa que sobre la que no podemos pasar,
+    						//buscamos como destino la posicion accesible mas cercana
+    						sf::Vector2i destinoAlcanzable = _level.posicionAccesibleMasCercana(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+    						//printf ("Destino alcanzable [%i,%i]\n", destinoAlcanzable.x, destinoAlcanzable.y);
+
+    						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoAlcanzable.x, destinoAlcanzable.y);
 
     						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
     							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
@@ -244,11 +249,10 @@ void Game::gameLoop() {
     								objetoSeleccionado->setDestino(destinoCoord);
     							}
 
-    	        			    destinoCruz.setX(pObjeto->getX());
-    	        			    destinoCruz.setY(pObjeto->getY());
+    	        			    destinoCruz.setX(destinoAlcanzable.x);
+    	        			    destinoCruz.setY(destinoAlcanzable.y);
     	        			    _estadoJuego = _estRecolectando;
     						}
-
         				} //If (pObjeto sobre Bosque o Mina)
         				//No estamos sobre un recurso
         				else {

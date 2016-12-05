@@ -48,6 +48,9 @@ public:
 	// Devuelve una ruta formada por una cadena de los digitos de direccion
 	std::string pathFind( const int & xStart, const int & yStart, const int & xFinish, const int & yFinish );
 
+	// Devuelve la posicion accesible mas cercana, en una ruta, a un punto que no es accesible
+	sf::Vector2i posicionAccesibleMasCercana( const int & xStart, const int & yStart, const int & xFinish, const int & yFinish );
+
 	//Transformar la ruta devuelta por pathFind a coordenadas
 	std::vector<sf::Vector2i> rutaACoordenadas (std::string ruta, sf::Vector2i origen);
 
