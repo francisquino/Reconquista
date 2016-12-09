@@ -534,13 +534,13 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
     }
 
     //Dibujar mapar de rutas
-
+    /*
 	for (int j = 0; j < mMapaBuscarRutas; j++) {
 		for (int i = 0; i < nMapaBuscarRutas; i++)
 			printf ("%i",mapa[i][j]);
 		printf ("\n");
 	}
-
+	*/
 }
 
 void Level::update(int elapsedTime) {
@@ -562,6 +562,16 @@ void Level::update(int elapsedTime) {
         this->_enemies.at(i)->update(elapsedTime, player);
     }
     */
+
+    //Eliminar las animaciones secundarias que ya han acabado su ciclo de animacion
+    for (unsigned int i=0; i<this->_animacionesSecundarias.size(); i++) {
+    	this->_animacionesSecundarias.at(i)->update(elapsedTime);
+    	if (this->_animacionesSecundarias.at(i)->animacionFinalizada()) {
+    		printf("Borrar animacion secundaria %p\n", this->_animacionesSecundarias.at(i));
+    		delete this->_animacionesSecundarias.at(i);
+    		this->_animacionesSecundarias.erase(_animacionesSecundarias.begin()+i);
+    	}
+    }
 }
 
 void Level::draw(Graphics &graphics) {
@@ -614,14 +624,6 @@ void Level::draw(Graphics &graphics) {
     graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
 	this->_ayuntamiento->draw(graphics);
 
-	//Dibujar las unidades del ayuntamiento.
-	for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
-	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
-		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
-	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
-		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
-	}
-
 	//Dibujar los recursos
     for (unsigned int i=0; i<this->_recursos.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
@@ -630,6 +632,14 @@ void Level::draw(Graphics &graphics) {
         this->_recursos.at(i)->draw(graphics);
     }
 
+	//Dibujar las unidades del ayuntamiento.
+	for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
+	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
+		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
+	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
+	}
+
     /*
     for (int i=0; i<this->_animatedTileList.size(); i++) {
         this->_animatedTileList.at(i).draw(graphics);
@@ -637,6 +647,11 @@ void Level::draw(Graphics &graphics) {
     for (int i=0; i<this->_enemies.size(); i++) {
         this->_enemies.at(i)->draw(graphics);
     }*/
+
+	//Dibujar las animaciones secundarias
+	for (int i=0; i<this->_animacionesSecundarias.size(); i++) {
+        this->_animacionesSecundarias.at(i)->draw(graphics);
+    }
 
 }
 
@@ -1119,11 +1134,11 @@ std::vector<sf::Vector2i> Level::rutaACoordenadas (std::string ruta, sf::Vector2
 		x = x+dx[dir];
 		y = y+dy[dir];
 		listaCoordenadas.push_back(sf::Vector2i(x, y));
-		printf("Ruta [%i, %i]\n", x, y);
+		//printf("Ruta [%i, %i]\n", x, y);
 	}
 
 	return listaCoordenadas;
-}
+} //rutaACoordenadas
 
 
 //Simplificar la ruta de coordenadas, eliminando los desplazamientos irrelevantes
@@ -1148,16 +1163,16 @@ std::vector<sf::Vector2i> Level::simplificarRutaCoord (std::vector<sf::Vector2i>
 			//Si cambia la direccion, guardamos el punto B
 			if (dir1 != dir2) {
 				rutaSimple.push_back(puntoB);
-				printf ("Ruta simplificada [%i,%i]\n", puntoB.x, puntoB.y);
+				//printf ("Ruta simplificada [%i,%i]\n", puntoB.x, puntoB.y);
 			}
 			puntoA = puntoB;
 			j++;
 		}
 		rutaSimple.push_back(puntoC);
-		printf ("Ruta simplificada [%i,%i]\n", puntoC.x, puntoC.y);
+		//printf ("Ruta simplificada [%i,%i]\n", puntoC.x, puntoC.y);
 	}
 	return rutaSimple;
-}
+} //simplificarRutaCoord
 
 
 //Pasar de las coordenadas del terreno a las del mapa de obtencion de rutas
@@ -1167,7 +1182,7 @@ sf::Vector2i Level::coordAMapa(int x, int y) {
 	mapa.x = x / this->getTileSize().x / (int)globals::SPRITE_SCALE;
 	mapa.y = y / this->getTileSize().y / (int)globals::SPRITE_SCALE;
 	return (mapa);
-}
+} //coordAMapa
 
 //Pasar de las coordenadas del mapa de obtencion de rutas a las del terreno
 sf::Vector2i Level::mapaACoord(int x, int y) {
@@ -1177,6 +1192,4 @@ sf::Vector2i Level::mapaACoord(int x, int y) {
 	coord.y = y * this->getTileSize().y * globals::SPRITE_SCALE;
 
 	return (coord);
-}
-
-
+} //mapaACoord

@@ -101,27 +101,4 @@ class campesinoEstadoRecolectar : public Estado<Campesino>
  };
 
 
-//------------------------------------------------------------------------
-//
-//  Entidad ira al Ayuntamiento y depositara el material que transporta.
-//  Luego volvera a por mas material.
-//------------------------------------------------------------------------
-class campesinoEstadoVisitarAyuntamientoYDepositarMaterial : public Estado<Campesino>
-{
-	public:
-		//this is a singleton
-		static campesinoEstadoVisitarAyuntamientoYDepositarMaterial* Instance();
-		virtual void entrar(Campesino* pCampesino);
-		virtual void ejecutar(Campesino* pCampesino);
-		virtual void salir(Campesino* pCampesino);
-		virtual bool OnMessage(Campesino* agent, const Telegrama& msg);
-
-	private:
-		campesinoEstadoVisitarAyuntamientoYDepositarMaterial() {}
-
-		//copy ctor and assignment should be private
-		campesinoEstadoVisitarAyuntamientoYDepositarMaterial(const campesinoEstadoVisitarAyuntamientoYDepositarMaterial&);
-		campesinoEstadoVisitarAyuntamientoYDepositarMaterial& operator=(const campesinoEstadoVisitarAyuntamientoYDepositarMaterial&);
-};
-
 #endif /* ESTADOSCAMPESINO_H */

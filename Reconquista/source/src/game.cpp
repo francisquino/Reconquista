@@ -12,6 +12,7 @@
 #include "messagedispatcher.h"
 #include "tipomensaje.h"
 #include "tipoestadojuego.h"
+#include "animaciones.h"
 
 /* Game class
  * This class holds all information for our main game loop
@@ -32,6 +33,8 @@ enum tipoCursor {
 extern Level _level;
 extern tipoEstadoJuego _estadoJuego;
 
+Graphics graphics;
+
 //Posicion para centrar la vista Juego
 sf::Vector2f position(0, 0);
 
@@ -49,6 +52,8 @@ Sprite destinoCruz;
 tipoCursor _tipoCursor = puntero;
 
 
+Animaciones _animaciones;
+
 Game::Game() {
     this->gameLoop();
 
@@ -61,19 +66,16 @@ Game::~Game() {
 }
 
 void Game::gameLoop() {
-    Graphics graphics;
     Input input;
     sf::Event event;
-    sf::Font font;
 
-    font.loadFromFile("content/fonts/04B_30__.TTF");
-
-
-    destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, 0, 0);
 
     _estadoJuego = _estInactivo;
 
     _level = Level("MapReconquista1", graphics);
+
+    destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, 0, 0);
+
     //this->_player = Player(graphics, _level.getPlayerSpawnPoint());
     this->_info = InfoUser(graphics);
     //this->_hud = HUD(graphics, this->_player);
@@ -196,9 +198,7 @@ void Game::gameLoop() {
 
 						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
 						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
-							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
-
-							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (pasos, origenMapa);
+							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (_level.rutaACoordenadas (ruta, origenMapa), origenMapa);
 
 							for (unsigned int i=0; i<rutaSimple.size(); i++) {
 								sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
@@ -239,16 +239,13 @@ void Game::gameLoop() {
     						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoAlcanzable.x, destinoAlcanzable.y);
 
     						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
-    							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
-
-    							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (pasos, origenMapa);
+    							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (_level.rutaACoordenadas (ruta, origenMapa), origenMapa);
 
     							for (unsigned int i=0; i<rutaSimple.size(); i++) {
     								sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
     								//Cada desplazamiento lo almacenamos en la ruta del objeto
     								objetoSeleccionado->setDestino(destinoCoord);
     							}
-
     	        			    destinoCruz.setX(destinoAlcanzable.x);
     	        			    destinoCruz.setY(destinoAlcanzable.y);
     	        			    _estadoJuego = _estRecolectando;
@@ -268,9 +265,7 @@ void Game::gameLoop() {
 
     						std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
     						if (ruta.compare("")!=0) { //Si ruta es distinto de ""
-    							std::vector<sf::Vector2i> pasos = _level.rutaACoordenadas (ruta, origenMapa);
-
-    							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (pasos, origenMapa);
+    							std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (_level.rutaACoordenadas (ruta, origenMapa), origenMapa);
 
     							for (unsigned int i=0; i<rutaSimple.size(); i++) {
     								sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
@@ -524,6 +519,8 @@ void Game::draw(Graphics& graphics) {
     }
     //this->_hud.draw(graphics);
 
+    _animaciones.draw(graphics);
+
     graphics.getWindow().setView(*graphics.getView(Juego));
 
     graphics.flip();
@@ -534,6 +531,8 @@ void Game::update(float elapsedTime) {
 
 	_level.update(elapsedTime);
     this->_info.update(elapsedTime);
+
+    _animaciones.update(elapsedTime);
 
     /*if (isMouseBox && _level._ayuntamiento.checkColision(Rectangle (startingPositionWorldPos.x, startingPositionWorldPos.y,
 				currentPositionWorldPos.x - startingPositionWorldPos.x, currentPositionWorldPos.y- startingPositionWorldPos.y))) {

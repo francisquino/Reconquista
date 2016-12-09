@@ -105,8 +105,8 @@ class Objeto : public AnimatedSprite {
 
 		//Añade un punto a la ruta
 		void setDestino(const sf::Vector2i destino);
-		const float getDestinoX() const { if (this->_ruta.size()>0) return this->_ruta[0].x; else return NULL; }
-		const float getDestinoY() const { if (this->_ruta.size()>0) return this->_ruta[0].y; else return NULL; }
+		const int getDestinoX() const { if (this->_ruta.size()>0) return this->_ruta[0].x; else return NULL; }
+		const int getDestinoY() const { if (this->_ruta.size()>0) return this->_ruta[0].y; else return NULL; }
 		//Borrar el primer punto de la ruta
 		void deleteDestino() { this->_ruta.erase(this->_ruta.begin()); }
 
@@ -114,8 +114,13 @@ class Objeto : public AnimatedSprite {
 		void setSeleccionado(const bool seleccionado);
 
 		bool checkColision(const Rectangle &other);
+		//Comprueba si este objeto choca con el objeto que le indicamos
 		bool chocaConObjeto(Objeto* pObjeto);
+		//Comprueba si este objeto choca con cualquier otro objeto del nivel
 		Objeto* chocaConAlgunObjeto();
+
+		//Comprueba si este objeto se encuentra en una casilla del mapa junto al objeto que le indicamos
+		bool juntoAObjeto(Objeto* pObjeto);
 
 		const inline int getMaxHealth() const { return this->_maxHealth; }
 		const inline int getCurrentHealth() const { return this->_currentHealth; }

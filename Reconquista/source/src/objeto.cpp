@@ -163,6 +163,31 @@ Objeto* Objeto::chocaConAlgunObjeto() {
 	return NULL;
 }
 
+//Comprueba si este objeto se encuentra en la misma casilla del mapa o en una adyacente al objeto que le indicamos
+bool Objeto::juntoAObjeto(Objeto* pObjeto) {
+	bool juntos = false; //Inicialmente no estan juntos
+
+	//Posicion de este objeto en coordenadas del mapa
+	sf::Vector2i posicionMapa = _level.coordAMapa(this->getX(), this->getY());
+	//Posicion del otro objeto a comprobar en coordenadas del mapa
+	sf::Vector2i posicionOtro = _level.coordAMapa(pObjeto->getX(), pObjeto->getY());
+
+	//Comprobamos la misma casilla y
+	//las 8 casillas adyacentes a este objeto
+	if ((posicionMapa.x == posicionOtro.x && posicionMapa.y == posicionOtro.y) ||
+			(posicionMapa.x+1 == posicionOtro.x && posicionMapa.y == posicionOtro.y) ||
+			(posicionMapa.x+1 == posicionOtro.x && posicionMapa.y+1 == posicionOtro.y) ||
+			(posicionMapa.x == posicionOtro.x && posicionMapa.y+1 == posicionOtro.y) ||
+			(posicionMapa.x-1 == posicionOtro.x && posicionMapa.y+1 == posicionOtro.y) ||
+			(posicionMapa.x-1 == posicionOtro.x && posicionMapa.y == posicionOtro.y) ||
+			(posicionMapa.x-1 == posicionOtro.x && posicionMapa.y-1 == posicionOtro.y) ||
+			(posicionMapa.x == posicionOtro.x && posicionMapa.y-1 == posicionOtro.y) ||
+			(posicionMapa.x+1 == posicionOtro.x && posicionMapa.y-1 == posicionOtro.y))
+		juntos = true;
+	return juntos;
+}
+
+
 void Objeto::gainHealth(int amount) {
     if ((this->_currentHealth += amount) < 0)
         this->_currentHealth = 0;

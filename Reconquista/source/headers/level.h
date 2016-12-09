@@ -15,6 +15,7 @@
 #include "door.h"
 #include "objeto.h"
 #include "nodo.h"
+#include "animaciones.h"
 
 class Graphics;
 class Ayuntamiento;
@@ -64,6 +65,9 @@ public:
 
     Ayuntamiento* _ayuntamiento;
     std::vector<Objeto*> _recursos;
+
+    //Animaciones secundarias: +100 Puntos, explosiones, ...
+    std::vector<Animaciones*> _animacionesSecundarias;
 
     //Mapa para busqueda de rutas con A*
     int** mapa;

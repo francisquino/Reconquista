@@ -8,6 +8,7 @@
 #include "estadosmina.h"
 #include "estado.h"
 #include "objeto.h"
+#include "tipomensaje.h"
 
 #include <iostream>
 
@@ -57,27 +58,16 @@ void minaEstadoInactivo::salir(Mina* pMina) {
 
 bool minaEstadoInactivo::OnMessage(Mina* pMina, const Telegrama& msg)
 {
-	/*
-	SetTextColor(BACKGROUND_RED|FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
-
-	switch(msg.Msg)
+	switch(msg._msg)
 	{
-		case Msg_StewReady:
+		case _msjRecolectarMaterial:
+			Objeto* pCampesino = msg._emisor; //Campesino que recolecta
 
-			cout << "\nMessage handled by " << GetNameOfEntity(pMina->ID())
-			<< " at time: " << Clock->GetCurrentTime();
-
-			SetTextColor(FOREGROUND_RED|FOREGROUND_INTENSITY);
-
-			cout << "\n" << GetNameOfEntity(pMina->ID())
-						  << ": Okay Hun, ahm a comin'!";
-
-			pMina->GetFSM()->ChangeState(EatStew::Instance());
+			pMina->modificarCantidadMaterial(tipoMaterial::Oro, -1*pCampesino->getCantidadMaterial(tipoMaterial::Oro));
 
 			return true;
 
 	}//end switch
-	*/
 
 	//send msg to global message handler
 	return false;

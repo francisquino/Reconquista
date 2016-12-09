@@ -17,7 +17,9 @@ enum tipoMensaje
 	_msjNoHayRecurso,
 	_msjDestinoFijado,
 	_msjDesplazarseARecurso,
-	_msjRecursoFijado
+	_msjRecursoFijado,
+	_msjDescargarMaterial,
+	_msjRecolectarMaterial
 };
 
 
@@ -37,6 +39,10 @@ inline std::string msjToStr(int msg)
 			return "DesplazarseARecurso";
 		case _msjRecursoFijado:
 			return "RecursoFijado";
+		case _msjDescargarMaterial:
+			return "DescargarMaterial";
+		case _msjRecolectarMaterial:
+			return "RecolectarMaterial";
 		default:
 			return "No reconocido!";
 	}

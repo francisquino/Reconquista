@@ -11,12 +11,16 @@
 #include "objeto.h"
 #include "tipomensaje.h"
 #include "level.h"
+#include "animaciones.h"
 
 #include <iostream>
 
 
+extern Graphics graphics;
 extern Level _level;
 extern tipoEstadoJuego _estadoJuego;
+
+
 
 //--------------------------------------- Metodos para campesinoEstadoGlobal
 campesinoEstadoGlobal* campesinoEstadoGlobal::Instance() {
@@ -161,25 +165,66 @@ void campesinoEstadoRecolectar::entrar(Campesino* pCampesino) {
 		Objeto* recurso = pCampesino->getRecursoRecolectar(); //Recurso que estamos explotando
 		Objeto* ayuntamiento = _level._ayuntamiento; //Ayuntamiento al que pertenece el Campesino
 
-		//Objeto sobre el que se encuentra situado el Campesino, el ayuntamiento o un recurso
-		Objeto* pObjeto = pCampesino->chocaConAlgunObjeto();
-
-		//Si estamos situados sobre el recurso, recolectamos el material
-		if (pObjeto!=NULL && (pObjeto->getTipo()==tipoObjeto::Bosque || pObjeto->getTipo()==tipoObjeto::Mina))
-			printf("\nCampesino empieza a recolectar\n");
-		//Si estamos situados sobre el ayuntamiento, nos desplazamos al recurso
-		else if (pObjeto!=NULL && pObjeto->getTipo()==tipoObjeto::Ayuntamiento) {
+		//Si estamos situados junto al recurso, recolectamos el material
+		if (pCampesino->juntoAObjeto(recurso))
+			printf("\nCampesino empieza a recolectar %s %p\n", materialToStr(recurso->getTipoMaterial()).c_str(), (void*)recurso);
+		//Si estamos situados junto al ayuntamiento, descargamos y volvemos al recurso
+		else if (pCampesino->juntoAObjeto(ayuntamiento)) {
 			//Enviar un mensaje al ayuntamiento para aumentar sus recursos
+			std::map<tipoMaterial::TipoMaterial, int> *materialYTipoRecolectado;
+
+			(*materialYTipoRecolectado)[pCampesino->getTipoMaterial()] = pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial());
+			Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 		//time delay
+									pCampesino,					//Objeto* sender
+									ayuntamiento,		   		//Objeto* recipient
+									_msjDescargarMaterial,		//the message
+									materialYTipoRecolectado);	//Informacion extra
 
 			printf("Campesino deja en Ayuntamiento %i %s\n", pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial()), materialToStr(pCampesino->getTipoMaterial()).c_str());
 			pCampesino->modificarCantidadMaterial(pCampesino->getTipoMaterial(), -1*pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial()));
+
+			//Creamos una nueva animacion secundaria de "+100 puntos"
+			Animaciones* as = new Animaciones(graphics);
+			printf("Nueva animacion +100Puntos %p\n", (void*)as);
+			as->playAnimation("mas100Puntos", true); //Once = true
+			as->setX(ayuntamiento->getX());
+			as->setY(ayuntamiento->getY());
+			_level._animacionesSecundarias.push_back(as);
+
+
 			printf("Regresar a %s\n", tipoObjetoToStr(recurso->getTipo()).c_str());
-			sf::Vector2i posicion_destino = sf::Vector2i (recurso->getX(), recurso->getY());
-			Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
-									ayuntamiento,			//Objeto* sender
-									pCampesino,			   	//Objeto* recipient
-									_msjDestinoFijado,		//the message
-									&posicion_destino);		//Informacion extra
+			sf::Vector2i posicionDestino = sf::Vector2i (recurso->getX(), recurso->getY());
+			posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
+			posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
+
+			//Calculamos la ruta a recorrer con el algoritmo A*
+			//Primero pasamos las coordenadas del terreno a las del mapa
+			sf::Vector2i origenMapa = _level.coordAMapa(pCampesino->getX(), pCampesino->getY());
+			sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
+			//printf("Origen [%i,%i] Destino [%i,%i]\n", origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+
+			//Como el destino es una posicion del mapa que sobre la que no podemos pasar,
+			//buscamos como destino la posicion accesible mas cercana
+			sf::Vector2i destinoAlcanzable = _level.posicionAccesibleMasCercana(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+			//printf ("Destino alcanzable [%i,%i]\n", destinoAlcanzable.x, destinoAlcanzable.y);
+
+			std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoAlcanzable.x, destinoAlcanzable.y);
+
+			if (ruta.compare("")!=0) { //Si ruta es distinto de ""
+				std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (_level.rutaACoordenadas (ruta, origenMapa), origenMapa);
+
+				for (unsigned int i=0; i<rutaSimple.size(); i++) {
+					sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
+					//Cada desplazamiento lo almacenamos en la ruta del campesino
+					pCampesino->setDestino(destinoCoord);
+				}
+
+				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
+										NULL,					//Objeto* sender
+										pCampesino,			   	//Objeto* recipient
+										_msjDestinoFijado,		//the message
+										NULL);					//Informacion extra
+			}
 		}
 	}
 }
@@ -191,8 +236,31 @@ void campesinoEstadoRecolectar::ejecutar(Campesino* pCampesino) {
 	//Si queda material en el recurso, cargamos el material
 	//Si ya no queda material, borramos el recurso del campesino.
 	if (recurso->getCantidadMaterial(material)>0) {
-		pCampesino->modificarCantidadMaterial(material, pCampesino->cargaMaterialMaxima(material));
-		recurso->modificarCantidadMaterial(material, -1*pCampesino->cargaMaterialMaxima(material));
+
+		//Si la cantidad de material que queda es menor que la carga maxima que puede transportar el campesino,
+		//recolectamos esa cantidad
+		int cantidadRecolectada=pCampesino->cargaMaterialMaxima(material);
+		if (recurso->getCantidadMaterial(material) < cantidadRecolectada) {
+			cantidadRecolectada=recurso->getCantidadMaterial(material);
+		}
+		pCampesino->modificarCantidadMaterial(material, cantidadRecolectada);
+		printf("Campesino recoje %i %i %s\n", cantidadRecolectada, pCampesino->getCantidadMaterial(material), materialToStr(pCampesino->getTipoMaterial()).c_str());
+
+		//Enviar un mensaje al recurso para disminuir su material
+		Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
+								pCampesino,				//Objeto* sender
+								recurso,			   	//Objeto* recipient
+								_msjRecolectarMaterial,	//the message
+								NULL);					//Informacion extra
+
+		//Creamos una nueva animacion secundaria de "+100 puntos"
+		Animaciones* as = new Animaciones(graphics);
+		printf("Nueva animacion +100Puntos %p\n", (void*)as);
+		as->playAnimation("mas100Puntos", true); //Once = true
+		as->setX(recurso->getX());
+		as->setY(recurso->getY());
+		_level._animacionesSecundarias.push_back(as);
+
 		printf("%s disponible %i\n", materialToStr(recurso->getTipoMaterial()).c_str(), recurso->getCantidadMaterial(material));
 	}
 
@@ -200,6 +268,9 @@ void campesinoEstadoRecolectar::ejecutar(Campesino* pCampesino) {
 	if (recurso->getCantidadMaterial(material)<=0) {
 		pCampesino->setRecursoRecolectar(NULL);
 		printf("Recurso agotado\n");
+
+		//Si el recurso es un bosque, buscar si hay uno cerca y fijarlo como nuevo objetivo
+
 		pCampesino->GetFSM()->cambiarEstado(campesinoEstadoInactivo::Instance());
 
 		_estadoJuego=_estInactivo;
@@ -208,31 +279,46 @@ void campesinoEstadoRecolectar::ejecutar(Campesino* pCampesino) {
 	//Si hemos recolectado algo de material, ir al ayuntamiento a depositarlo
 	if (pCampesino->getCantidadMaterial(material)>0) {
 		printf("Ir a Ayuntamiento a depositar el material\n");
-		sf::Vector2i posicion_destino = sf::Vector2i (_level._ayuntamiento->getX(), _level._ayuntamiento->getY());
-		Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
-								pCampesino,				//Objeto* sender
-								pCampesino,			   	//Objeto* recipient
-								_msjDestinoFijado,		//the message
-								&posicion_destino);		//Informacion extra
-	}
 
-	/*
-	//El objeto (campesino) recolecta oro o madera hasta que llega al ĺímite que puede transportar.
-	pCampesino->modificarCantidadMaterial(pDestino->getTipoMaterial(), 1);
-	pDestino->modificarCantidadMaterial(pDestino->getTipoMaterial(), -1);
-	std::cout << "\nObjeto tipo " << pCampesino->getTipo() << ": "
-	<< "Cogiendo material" << pDestino->getTipoMaterial();
-	//Si hay suficiente material recolectado, almacenarlo al ayuntamiento
-	if (pCampesino->cargaMaterialMaxima(pDestino->getTipoMaterial()))
-	{
-		pCampesino->cambiarEstado(campesinoEstadoVisitarAyuntamientoYDepositarMaterial::Instance());
+		sf::Vector2i posicionDestino = sf::Vector2i (_level._ayuntamiento->getX(), _level._ayuntamiento->getY());
+		posicionDestino.x = posicionDestino.x - (posicionDestino.x % (_level.getTileSize().x * (int)globals::SPRITE_SCALE));
+		posicionDestino.y = posicionDestino.y - (posicionDestino.y % (_level.getTileSize().y * (int)globals::SPRITE_SCALE));
+
+		//Calculamos la ruta a recorrer con el algoritmo A*
+		//Primero pasamos las coordenadas del terreno a las del mapa
+		sf::Vector2i origenMapa = _level.coordAMapa(pCampesino->getX(), pCampesino->getY());
+		sf::Vector2i destinoMapa = _level.coordAMapa(posicionDestino.x, posicionDestino.y);
+		//printf("Origen [%i,%i] Destino [%i,%i]\n", origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+
+		//Como el destino es una posicion del mapa que sobre la que no podemos pasar,
+		//buscamos como destino la posicion accesible mas cercana
+		sf::Vector2i destinoAlcanzable = _level.posicionAccesibleMasCercana(origenMapa.x, origenMapa.y, destinoMapa.x, destinoMapa.y);
+		//printf ("Destino alcanzable [%i,%i]\n", destinoAlcanzable.x, destinoAlcanzable.y);
+
+		std::string ruta = _level.pathFind(origenMapa.x, origenMapa.y, destinoAlcanzable.x, destinoAlcanzable.y);
+
+		if (ruta.compare("")!=0) { //Si ruta es distinto de ""
+			std::vector<sf::Vector2i> rutaSimple = _level.simplificarRutaCoord (_level.rutaACoordenadas (ruta, origenMapa), origenMapa);
+
+			for (unsigned int i=0; i<rutaSimple.size(); i++) {
+				sf::Vector2i destinoCoord = _level.mapaACoord(rutaSimple[i].x, rutaSimple[i].y);
+				//Cada desplazamiento lo almacenamos en la ruta del campesino
+				pCampesino->setDestino(destinoCoord);
+			}
+
+			Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY, 	//time delay
+									pCampesino,				//Objeto* sender
+									pCampesino,			   	//Objeto* recipient
+									_msjDestinoFijado,		//the message
+									NULL);					//Informacion extra
+		}
 	}
-	*/
 }
 
 void campesinoEstadoRecolectar::salir(Campesino* pCampesino) {
 	//std::cout << "\nObjeto tipo " << tipoObjetoToStr(pCampesino->getTipo()) << ": "
 	//<< "Saliendo de EstadoRecolectar\n";
+	printf ("Saliendo de EstadoRecolectar\n");
 }
 
 bool campesinoEstadoRecolectar::OnMessage(Campesino* pCampesino, const Telegrama& msg)
@@ -240,49 +326,12 @@ bool campesinoEstadoRecolectar::OnMessage(Campesino* pCampesino, const Telegrama
 	switch(msg._msg)
 	{
 		case _msjDestinoFijado:
-			sf::Vector2i* destino = (sf::Vector2i*)msg._extraInfo;
-			pCampesino->setDestino(*destino);
 			//printf("Campesino pasa a estado temporal Ir Destino: (%i, %i)\n", destino->x, destino->y);
 			pCampesino->GetFSM()->cambiarEstado(campesinoEstadoIrDestino::Instance());
 
 			return true;
 	}//end switch
 
-  //send msg to global message handler
-  return false;
-}
-
-//--------------------------------------- Metodos para campesinoEstadoVisitarAyuntamientoYDepositarMaterial
-campesinoEstadoVisitarAyuntamientoYDepositarMaterial* campesinoEstadoVisitarAyuntamientoYDepositarMaterial::Instance() {
-	static campesinoEstadoVisitarAyuntamientoYDepositarMaterial instance;
-
-	return &instance;
-}
-
-void campesinoEstadoVisitarAyuntamientoYDepositarMaterial::entrar(Campesino* pCampesino) {
-	std::cout << "\nObjeto tipo " << pCampesino->getTipo() << ": "
-	<< "Dirigiendose al ayuntamiento";
-}
-
-void campesinoEstadoVisitarAyuntamientoYDepositarMaterial::ejecutar(Campesino* pCampesino) {
-	//El objeto (campesino) deposita el material recolectado
-	/*
-	pCampesino->modificarCantidadMaterial(pCampesino->getTipoMaterial(), -1*pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial()));
-	pDestino->modificarCantidadMaterial(pCampesino->getTipoMaterial(), pCampesino->getCantidadMaterial(pCampesino->getTipoMaterial()));
-	*/
-	std::cout << "\nObjeto tipo " << pCampesino->getTipo() << ": "
-	<< "Depositando material"; // << pDestino->getTipoMaterial();
-	//Volver al recurso a obtener mas material
-	//pCampesino->cambiarEstado(campesinoEstadoRecolectar::Instance());
-}
-
-void campesinoEstadoVisitarAyuntamientoYDepositarMaterial::salir(Campesino* pCampesino) {
-	std::cout << "\nObjeto tipo " << pCampesino->getTipo() << ": "
-	<< "Abandonando del ayuntamiento";
-}
-
-bool campesinoEstadoVisitarAyuntamientoYDepositarMaterial::OnMessage(Campesino* pCampesino, const Telegrama& msg)
-{
   //send msg to global message handler
   return false;
 }

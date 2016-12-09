@@ -8,6 +8,7 @@
 #include "estadosayuntamiento.h"
 #include "estado.h"
 #include "objeto.h"
+#include "tipomensaje.h"
 
 #include <iostream>
 
@@ -57,27 +58,19 @@ void ayuntamientoEstadoInactivo::salir(Ayuntamiento* pAyuntamiento) {
 
 bool ayuntamientoEstadoInactivo::OnMessage(Ayuntamiento* pAyuntamiento, const Telegrama& msg)
 {
-	/*
-	SetTextColor(BACKGROUND_RED|FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
-
-	switch(msg.Msg)
+	switch(msg._msg)
 	{
-		case Msg_StewReady:
+		case _msjDescargarMaterial:
+			std::map<tipoMaterial::TipoMaterial, int> *materialYTipo = (std::map<tipoMaterial::TipoMaterial, int>*) msg._extraInfo;
 
-			cout << "\nMessage handled by " << GetNameOfEntity(pAyuntamiento->ID())
-			<< " at time: " << Clock->GetCurrentTime();
-
-			SetTextColor(FOREGROUND_RED|FOREGROUND_INTENSITY);
-
-			cout << "\n" << GetNameOfEntity(pAyuntamiento->ID())
-						  << ": Okay Hun, ahm a comin'!";
-
-			pAyuntamiento->GetFSM()->ChangeState(EatStew::Instance());
+			//for (std::map<tipoMaterial::TipoMaterial, int>::iterator it=materialYTipo->begin(); it!=materialYTipo->end(); ++it)
+			//    std::cout << it->first << " => " << it->second << '\n';
+			//printf("Ayuntamiento recibe %i %s\n", materialYTipo[1], materialToStr((tipoMaterial)materialYTipo[0]).c_str());
+			pAyuntamiento->modificarCantidadMaterial(materialYTipo->begin()->first, materialYTipo->begin()->second);
 
 			return true;
 
 	}//end switch
-	*/
 
 	//send msg to global message handler
 	return false;

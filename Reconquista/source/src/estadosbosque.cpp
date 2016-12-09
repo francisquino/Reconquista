@@ -8,6 +8,7 @@
 #include "estadosbosque.h"
 #include "estado.h"
 #include "objeto.h"
+#include "tipomensaje.h"
 
 #include <iostream>
 
@@ -57,27 +58,16 @@ void bosqueEstadoInactivo::salir(Bosque* pBosque) {
 
 bool bosqueEstadoInactivo::OnMessage(Bosque* pBosque, const Telegrama& msg)
 {
-	/*
-	SetTextColor(BACKGROUND_RED|FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
-
-	switch(msg.Msg)
+	switch(msg._msg)
 	{
-		case Msg_StewReady:
+		case _msjRecolectarMaterial:
+			Objeto* pCampesino = msg._emisor; //Campesino que recolecta
 
-			cout << "\nMessage handled by " << GetNameOfEntity(pBosque->ID())
-			<< " at time: " << Clock->GetCurrentTime();
-
-			SetTextColor(FOREGROUND_RED|FOREGROUND_INTENSITY);
-
-			cout << "\n" << GetNameOfEntity(pBosque->ID())
-						  << ": Okay Hun, ahm a comin'!";
-
-			pBosque->GetFSM()->ChangeState(EatStew::Instance());
+			pBosque->modificarCantidadMaterial(tipoMaterial::Madera, -1*pCampesino->getCantidadMaterial(tipoMaterial::Madera));
 
 			return true;
 
 	}//end switch
-	*/
 
 	//send msg to global message handler
 	return false;
