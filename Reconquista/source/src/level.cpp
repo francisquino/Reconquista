@@ -15,7 +15,8 @@
 
 using namespace tinyxml2;
 
-const int dir=4; // Numero de posibles direcciones para desplazarse desde cualquier posicion. 8 con diagonales. 4 sin diagonales
+// Numero de posibles direcciones para desplazarse desde cualquier posicion. 8 con diagonales. 4 sin diagonales
+const int dir=4;	//No vamos a usar diagonales para no atravesar por atajos
 // if dir==4
 static int dx[dir]={1, 0, -1, 0};
 static int dy[dir]={0, 1, 0, -1};
@@ -533,7 +534,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
         }
     }
 
-    //Dibujar mapar de rutas
+    //Dibujar mapa de rutas
     /*
 	for (int j = 0; j < mMapaBuscarRutas; j++) {
 		for (int i = 0; i < nMapaBuscarRutas; i++)
@@ -567,7 +568,7 @@ void Level::update(int elapsedTime) {
     for (unsigned int i=0; i<this->_animacionesSecundarias.size(); i++) {
     	this->_animacionesSecundarias.at(i)->update(elapsedTime);
     	if (this->_animacionesSecundarias.at(i)->animacionFinalizada()) {
-    		printf("Borrar animacion secundaria %p\n", this->_animacionesSecundarias.at(i));
+    		printf("Borrar animacion secundaria num %i %p\n", i, this->_animacionesSecundarias.at(i));
     		delete this->_animacionesSecundarias.at(i);
     		this->_animacionesSecundarias.erase(_animacionesSecundarias.begin()+i);
     	}
@@ -789,9 +790,10 @@ bool operator<(const Nodo & a, const Nodo & b) {
 std::string Level::pathFind( const int & xStart, const int & yStart,
                  const int & xFinish, const int & yFinish ) {
     static std::priority_queue<Nodo> pq[2]; //Lista de nodos abiertos (todavia no evaluados)
-    int** mapaNodosCerrados;
-    int** mapaNodosAbiertos;
-    int** mapaDir;
+    static int** mapaNodosCerrados;
+    static int** mapaNodosAbiertos;
+    static int** mapaDir;
+
     static int pqi; //Indice de pq
     static Nodo* n0;
     static Nodo* m0;
@@ -827,6 +829,7 @@ std::string Level::pathFind( const int & xStart, const int & yStart,
 
     // Crear el nodo inicial e insertarlo en la lista de nodos abiertos
     n0=new Nodo(xStart, yStart, 0, 0);
+    x=n0->getxPos(); y=n0->getyPos();
     n0->updatePrioridad(xFinish, yFinish);
     pq[pqi].push(*n0);
     mapaNodosAbiertos[x][y]=n0->getPrioridad(); // Marcarlo en el mapa de nodos abiertos

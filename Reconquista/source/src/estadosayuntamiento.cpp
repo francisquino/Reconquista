@@ -5,6 +5,8 @@
  *      Author: francis
  */
 
+#include <string>
+
 #include "estadosayuntamiento.h"
 #include "estado.h"
 #include "objeto.h"
@@ -65,7 +67,6 @@ bool ayuntamientoEstadoInactivo::OnMessage(Ayuntamiento* pAyuntamiento, const Te
 
 			//for (std::map<tipoMaterial::TipoMaterial, int>::iterator it=materialYTipo->begin(); it!=materialYTipo->end(); ++it)
 			//    std::cout << it->first << " => " << it->second << '\n';
-			//printf("Ayuntamiento recibe %i %s\n", materialYTipo[1], materialToStr((tipoMaterial)materialYTipo[0]).c_str());
 			pAyuntamiento->modificarCantidadMaterial(materialYTipo->begin()->first, materialYTipo->begin()->second);
 
 			return true;

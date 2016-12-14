@@ -172,6 +172,8 @@ bool Objeto::juntoAObjeto(Objeto* pObjeto) {
 	//Posicion del otro objeto a comprobar en coordenadas del mapa
 	sf::Vector2i posicionOtro = _level.coordAMapa(pObjeto->getX(), pObjeto->getY());
 
+	//printf("Posicion [%i,%i] -- Posicion objeto[%i,%i]\n", posicionMapa.x, posicionMapa.y, posicionOtro.x, posicionOtro.y);
+
 	//Comprobamos la misma casilla y
 	//las 8 casillas adyacentes a este objeto
 	if ((posicionMapa.x == posicionOtro.x && posicionMapa.y == posicionOtro.y) ||
@@ -184,6 +186,7 @@ bool Objeto::juntoAObjeto(Objeto* pObjeto) {
 			(posicionMapa.x == posicionOtro.x && posicionMapa.y-1 == posicionOtro.y) ||
 			(posicionMapa.x+1 == posicionOtro.x && posicionMapa.y-1 == posicionOtro.y))
 		juntos = true;
+	//printf("Juntos %s\n", juntos?"true":"false");
 	return juntos;
 }
 
@@ -198,6 +201,10 @@ void Objeto::modificarCantidadMaterial(tipoMaterial::TipoMaterial material, int 
 	if ((this->_materiales[material] += cantidad) < 0)
 		this->_materiales[material] = 0;
  }
+
+int Objeto::getCantidadMaterial(tipoMaterial::TipoMaterial material) {
+	return this->_materiales[material];
+}
 
 tipoMaterial::TipoMaterial Objeto::getTipoMaterial() {}
 
