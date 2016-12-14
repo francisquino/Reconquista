@@ -16,13 +16,17 @@
 using namespace tinyxml2;
 
 // Numero de posibles direcciones para desplazarse desde cualquier posicion. 8 con diagonales. 4 sin diagonales
-const int dir=4;	//No vamos a usar diagonales para no atravesar por atajos
+const int dir=8;
 // if dir==4
-static int dx[dir]={1, 0, -1, 0};
-static int dy[dir]={0, 1, 0, -1};
+//static int dx[dir]={1, 0, -1, 0};
+//static int dy[dir]={0, 1, 0, -1};
 // if dir==8
-//static int dx[dir]={1, 1, 0, -1, -1, -1, 0, 1};
-//static int dy[dir]={0, 1, 1, 1, 0, -1, -1, -1};
+//Probar diagonales
+static int dx[dir]={1, 1, 0,-1,-1,-1, 0, 1};
+static int dy[dir]={0, 1, 1, 1, 0,-1,-1,-1};
+
+//Orden en el que recorremos dx y dy. Primero las posiciones pares (las no diagonales), luego las impares (las diagonales)
+static int orden[dir]={0,2,4,6,1,3,5,7};
 
 //Sumamos el valor de dx y dy a las cooordenadas para desplazarnos en el sentido del reloj
 // [     ][     ][     ]		[     ][     ][     ]		[     ][     ][     ]	...	[-1,-1][ 0,-1][ 1,-1]
@@ -353,6 +357,7 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
 				}
             }
             //Other objectgroups go here with an else if (ss.str() == "whatever")
+            /*
             else if (ss.str() == "slopes") {
                 XMLElement* pObject = pObjectGroup->FirstChildElement("object");
                 if (pObject != NULL){
@@ -381,18 +386,18 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                         }
 
                         for(unsigned int i=0; i<points.size(); i+=2) {
-                            /*this->_slopes.push_back(Slope(
-                                    sf::Vector2f((p1.x + points.at(i<2 ? i : i-1).x) * globals::SPRITE_SCALE,
-                                                 (p1.y + points.at(i<2 ? i : i-1).y) * globals::SPRITE_SCALE),
-                                    sf::Vector2f((p1.x + points.at(i<2 ? i+1 : i).x) * globals::SPRITE_SCALE,
-                                                 (p1.y + points.at(i<2 ? i+1 : i).y) * globals::SPRITE_SCALE)
-                            ));*/
+                            //this->_slopes.push_back(Slope(
+                            //        sf::Vector2f((p1.x + points.at(i<2 ? i : i-1).x) * globals::SPRITE_SCALE,
+                            //                     (p1.y + points.at(i<2 ? i : i-1).y) * globals::SPRITE_SCALE),
+                            //        sf::Vector2f((p1.x + points.at(i<2 ? i+1 : i).x) * globals::SPRITE_SCALE,
+                            //                     (p1.y + points.at(i<2 ? i+1 : i).y) * globals::SPRITE_SCALE)
+                            //));
                         }
 
                         pObject = pObject->NextSiblingElement("object");
                     }
                 }
-            }
+            }*/
             else if (ss.str() == "spawn points") {
                 XMLElement* pObject = pObjectGroup->FirstChildElement("object");
                 if (pObject != NULL){
@@ -800,6 +805,8 @@ std::string Level::pathFind( const int & xStart, const int & yStart,
     static int i, j, x, y, xdx, ydy;
     static char c;
 
+    static int iOrden; //Indice de orden
+
     pqi=0;
 
     // Inicia los nodos de los mapas. Se vuelve tan complicado al ser array 2D sin conocer el tamaño inicialmente
@@ -880,64 +887,73 @@ std::string Level::pathFind( const int & xStart, const int & yStart,
         } //Parar de buscar al alcanzar la meta
 
         // Generar movimientos (nodos hijos) en todas las direcciones posibles
-        for(i=0;i<dir;i++)
+        for(iOrden=0;iOrden<dir;iOrden++)
         {
+        	//Recorremos los nodos hijos en el siguiente orden: primero los pares (0,2,4,6 no diagonales), luego los impares (1,3,5,7 diagonales)
+        	//Lo hacemos asi para desplazarnos a un nodo diagonal solo si podemos hacerlo por los padres, para no atravesar por diagonales
+        	i = orden[iOrden];
+
         	//xdx es la coord. x del nuevo nodo (x + el desplazamiento x) ydy es la coord. y del nuevo nodo (y + el desplazamiento y)
-            xdx=x+dx[i];
-            ydy=y+dy[i];
+        	xdx=x+dx[i];
+        	ydy=y+dy[i];
+
 
             //Si las coordenadas del nodo hijo (xdx, ydy) estan dentro de las coordenadas del mapa,
             //la casilla del mapa en esas coordenadas no es 1,
-            //y la casilla del mapa de nodos cerrados (ya evaluados) en esas coordenadas tampoco es 1:
+            //la casilla del mapa de nodos cerrados (ya evaluados) en esas coordenadas tampoco es 1,
             if(!(xdx<0 || xdx>nMapaBuscarRutas-1 || ydy<0 || ydy>mMapaBuscarRutas-1 || mapa[xdx][ydy]==1
                 || mapaNodosCerrados[xdx][ydy]==1))
             {
-                // Generar un nuevo nodo hijo, calculando la distancia y la prioridad
-                m0=new Nodo( xdx, ydy, n0->getDistancia(),
-                             n0->getPrioridad());
-                m0->nextDistancia(dir, i);
-                m0->updatePrioridad(xFinish, yFinish);
+            	//Si es una casilla impar (1,3,5,7) y las casillas anterior y posterior son accesibles
+            	//(por ejemplo para la casilla 1 [abajo-derecha] deben ser accesible la 0 [derecha] y la 2 [abajo]):
+            	if (iOrden<=3 || (iOrden>3 && mapa[x+dx[i-1]][y+dy[i-1]]==0 && mapa[x+dx[(i+1)%dir]][y+dy[(i+1)%dir]]==0)) {
+					// Generar un nuevo nodo hijo, calculando la distancia y la prioridad
+					m0=new Nodo( xdx, ydy, n0->getDistancia(),
+								 n0->getPrioridad());
+					m0->nextDistancia(dir, i);
+					m0->updatePrioridad(xFinish, yFinish);
 
-                // Si no esta en la lista abierta (no evaluados), añadirlo
-                if(mapaNodosAbiertos[xdx][ydy]==0)
-                {
-                    mapaNodosAbiertos[xdx][ydy]=m0->getPrioridad();
-                    pq[pqi].push(*m0);
-                    delete m0; // Only <-- new added by commenter // mark its parent Nodo direction
-                    mapaDir[xdx][ydy]=(i+dir/2)%dir;
-                }
-                // Ya esta en el mapa de nodos abiertos
-                else if(mapaNodosAbiertos[xdx][ydy]>m0->getPrioridad())
-                {
-                    // Actualizar la informacion de prioridad
-                    mapaNodosAbiertos[xdx][ydy]=m0->getPrioridad();
-                    // Actualizar la informacion de direccion del padre
-                    mapaDir[xdx][ydy]=(i+dir/2)%dir;
+					// Si no esta en la lista abierta (no evaluados), añadirlo
+					if(mapaNodosAbiertos[xdx][ydy]==0)
+					{
+						mapaNodosAbiertos[xdx][ydy]=m0->getPrioridad();
+						pq[pqi].push(*m0);
+						delete m0; // Only <-- new added by commenter // mark its parent Nodo direction
+						mapaDir[xdx][ydy]=(i+dir/2)%dir;
+					}
+					// Ya esta en el mapa de nodos abiertos
+					else if(mapaNodosAbiertos[xdx][ydy]>m0->getPrioridad())
+					{
+						// Actualizar la informacion de prioridad
+						mapaNodosAbiertos[xdx][ydy]=m0->getPrioridad();
+						// Actualizar la informacion de direccion del padre
+						mapaDir[xdx][ydy]=(i+dir/2)%dir;
 
-                    // Sustituir el nodo
-                    // vaciando una cola de prioridad a la otra    		by emptying one pq to the other one
-                    // excepto el nodo a ser sutituido sera ignorado	except the Nodo to be replaced will be ignored
-                    // y el nuevo nodo sera insertado en su lugar		and the new Nodo will be pushed in instead
-                    while(!(pq[pqi].top().getxPos()==xdx &&
-                           pq[pqi].top().getyPos()==ydy))
-                    {
-                        pq[1-pqi].push(pq[pqi].top());
-                        pq[pqi].pop();
-                    }
-                    pq[pqi].pop(); // Remover el nodo buscado			remove the wanted Nodo
+						// Sustituir el nodo
+						// vaciando una cola de prioridad a la otra    		by emptying one pq to the other one
+						// excepto el nodo a ser sutituido sera ignorado	except the Nodo to be replaced will be ignored
+						// y el nuevo nodo sera insertado en su lugar		and the new Nodo will be pushed in instead
+						while(!(pq[pqi].top().getxPos()==xdx &&
+							   pq[pqi].top().getyPos()==ydy))
+						{
+							pq[1-pqi].push(pq[pqi].top());
+							pq[pqi].pop();
+						}
+						pq[pqi].pop(); // Remover el nodo buscado			remove the wanted Nodo
 
-                    // Vaciar el mayor tamaño pq al mas pequeño			empty the larger size pq to the smaller one
-                    if(pq[pqi].size()>pq[1-pqi].size()) pqi=1-pqi;
-                    while(!pq[pqi].empty())
-                    {
-                        pq[1-pqi].push(pq[pqi].top());
-                        pq[pqi].pop();
-                    }
-                    pqi=1-pqi;
-                    pq[pqi].push(*m0);	// Solo el segundo elemento añadido nuevo			only 2nd item added new
-                    delete m0; // Añadir el mejor nodo en su lugar			add the better Nodo instead
-                }
-                else delete m0; // Recoleccion de basura
+						// Vaciar el mayor tamaño pq al mas pequeño			empty the larger size pq to the smaller one
+						if(pq[pqi].size()>pq[1-pqi].size()) pqi=1-pqi;
+						while(!pq[pqi].empty())
+						{
+							pq[1-pqi].push(pq[pqi].top());
+							pq[pqi].pop();
+						}
+						pqi=1-pqi;
+						pq[pqi].push(*m0);	// Solo el segundo elemento añadido nuevo			only 2nd item added new
+						delete m0; // Añadir el mejor nodo en su lugar			add the better Nodo instead
+					}
+					else delete m0; // Recoleccion de basura
+            	}
             }
         }
         delete n0; // Recoleccion de basura
