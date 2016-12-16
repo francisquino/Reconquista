@@ -18,9 +18,14 @@ Graphics::Graphics() {
     //Definir las vistas
     _vistaCompleta = _window->getView();
 
-    //_vistaJuego.reset(sf::FloatRect(0, 0, (_window->getSize().x * 0.5), (_window->getSize().y) * 0.5));
-    _vistaJuego.reset(sf::FloatRect(0, 0, 640, 480));
+    _vistaJuego.reset(sf::FloatRect(0, 0, globals::SCREEN_WIDTH, globals::SCREEN_HEIGHT));
     _vistaJuego.setViewport(sf::FloatRect(0.25f, 0, 1.f, 1.f));
+
+    //_vistaInJuego.reset(sf::FloatRect(0.25f, 0, globals::SCREEN_WIDTH*.75f, globals::SCREEN_HEIGHT));
+    //_vistaInJuego.reset(sf::FloatRect(176, 16, 448, 448));
+    _vistaInJuego.reset(sf::FloatRect(132, 12, 336, 336));
+    //_vistaInJuego.reset(sf::FloatRect(88, 8, 224, 224));
+    _vistaInJuego.setViewport(sf::FloatRect(0.25f+0.05f, 0+0.067f, 0.75f-(0.05f*2), 1.f-(0.067f*2))); //0.05f -> Ancho tile de 16 px. 0.067 -> Alto
 
     _vistaMinimapa.reset(sf::FloatRect(0, 0, 50*16*globals::SPRITE_SCALE, 50*16*globals::SPRITE_SCALE)); //(0, 0, 50 tiles x 16 x factor escalado, 50 tiles x 16 x factor escalado)
     _vistaMinimapa.setViewport(sf::FloatRect(0, 0, 0.25f, 0.25f));
@@ -63,6 +68,9 @@ sf::View* Graphics::getView(const Vista vista) {
 			break;
 		case Juego:
 			return &_vistaJuego;
+			break;
+		case InJuego:
+			return &_vistaInJuego;
 			break;
 		case Minimapa:
 			return &_vistaMinimapa;

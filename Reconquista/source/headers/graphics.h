@@ -20,6 +20,7 @@
 enum Vista {
 	Completa,
 	Juego,
+	InJuego,
 	Minimapa,
 	Info
 };
@@ -72,7 +73,8 @@ private:
     Sprite _spriteCursorPuntero, _spriteCursorLupa, _spriteCursorRecolectar;
 
     sf::View _vistaCompleta;
-    sf::View _vistaJuego;
+    sf::View _vistaJuego;	//Vista de la ventana Juego, con el marco incluido.
+    sf::View _vistaInJuego;	//Vista de la ventana Juego, dentro del marco: Incluida dentro de _vistaJuego.
     sf::View _vistaMinimapa;
     sf::View _vistaInfo;
 

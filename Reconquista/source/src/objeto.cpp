@@ -68,7 +68,7 @@ void Objeto::draw(Graphics &graphics) {
 		_box[4].position = sf::Vector2f(this->getBoundingBox().getLeft(), this->getBoundingBox().getTop());
 		_box[4].color = sf::Color::Green;
 
-		graphics.getWindow().setView(*graphics.getView(Juego));
+		graphics.getWindow().setView(*graphics.getView(InJuego));
 		graphics.getWindow().draw(_box);
 	}
 

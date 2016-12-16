@@ -576,7 +576,7 @@ void Level::update(int elapsedTime) {
     for (unsigned int i=0; i<this->_animacionesSecundarias.size(); i++) {
     	this->_animacionesSecundarias.at(i)->update(elapsedTime);
     	if (this->_animacionesSecundarias.at(i)->animacionFinalizada()) {
-    		printf("Borrar animacion secundaria num %i %p\n", i, this->_animacionesSecundarias.at(i));
+    		//printf("Borrar animacion secundaria num %i %p\n", i, this->_animacionesSecundarias.at(i));
     		delete this->_animacionesSecundarias.at(i);
     		this->_animacionesSecundarias.erase(_animacionesSecundarias.begin()+i);
     	}
@@ -599,12 +599,12 @@ void Level::draw(Graphics &graphics) {
 //        }
 //    }
 
-    //Calcular el rectangulo de la vista Juego. Le aumentamos el tamaño de un tile en todos los bordes para evitar
+    //Calcular el rectangulo de la vista InJuego. Le aumentamos el tamaño de un tile en todos los bordes para evitar
 	//que al dibujar no aparezcan dentro de la vista tiles que si lo están y se produzcan espacios vacios.
-    sf::FloatRect screenRect(sf::Vector2f((graphics.getView(Juego)->getCenter().x - (graphics.getView(Juego)->getSize().x)/2) - this->_tileList.at(0).getSize().x,
-                                        (graphics.getView(Juego)->getCenter().y - (graphics.getView(Juego)->getSize().y)/2) - this->_tileList.at(0).getSize().y) ,
-    						sf::Vector2f(graphics.getView(Juego)->getSize().x + this->_tileList.at(0).getSize().x,
-    									graphics.getView(Juego)->getSize().y + this->_tileList.at(0).getSize().y));
+    sf::FloatRect screenRect(sf::Vector2f((graphics.getView(InJuego)->getCenter().x - (graphics.getView(InJuego)->getSize().x)/2) - this->_tileList.at(0).getSize().x,
+                                        (graphics.getView(InJuego)->getCenter().y - (graphics.getView(InJuego)->getSize().y)/2) - this->_tileList.at(0).getSize().y) ,
+    						sf::Vector2f(graphics.getView(InJuego)->getSize().x + this->_tileList.at(0).getSize().x,
+    									graphics.getView(InJuego)->getSize().y + this->_tileList.at(0).getSize().y));
 
     for (unsigned int i=0; i<this->_tileList.size(); i++) {
         ////Dibujamos todos en la vista vista Minimapa
@@ -616,7 +616,7 @@ void Level::draw(Graphics &graphics) {
                                     sf::Vector2f(this->_tileList.at(i).getSize().x, this->_tileList.at(i).getSize().y));
         //Si el tile está dentro del rectangulo de la vista Juego lo dibujamos
         if(screenRect.intersects(tileBounds)) {
-            graphics.getWindow().setView(*graphics.getView(Juego));  //Establecer la vista Juego
+            graphics.getWindow().setView(*graphics.getView(InJuego));  //Establecer la vista Juego
             this->_tileList.at(i).draw(graphics);
         }
         /*else {
@@ -630,14 +630,14 @@ void Level::draw(Graphics &graphics) {
     graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
 	this->_ayuntamiento->draw(graphics);
     //Dibujar ayuntamiento en vista Juego
-    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+    graphics.getWindow().setView(*graphics.getView(InJuego)); //Establecer la vista Juego
 	this->_ayuntamiento->draw(graphics);
 
 	//Dibujar los recursos
     for (unsigned int i=0; i<this->_recursos.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
         this->_recursos.at(i)->draw(graphics);
-    	graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+    	graphics.getWindow().setView(*graphics.getView(InJuego)); //Establecer la vista Juego
         this->_recursos.at(i)->draw(graphics);
     }
 
@@ -645,7 +645,7 @@ void Level::draw(Graphics &graphics) {
 	for (unsigned int i=0; i<this->_ayuntamiento->_unidades.size(); i++) {
 	    graphics.getWindow().setView(*graphics.getView(Minimapa)); //Establecer vista Minimapa
 		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
-	    graphics.getWindow().setView(*graphics.getView(Juego)); //Establecer la vista Juego
+	    graphics.getWindow().setView(*graphics.getView(InJuego)); //Establecer la vista Juego
 		this->_ayuntamiento->_unidades.at(i)->draw(graphics);
 	}
 
@@ -658,6 +658,7 @@ void Level::draw(Graphics &graphics) {
     }*/
 
 	//Dibujar las animaciones secundarias
+    graphics.getWindow().setView(*graphics.getView(InJuego)); //Establecer la vista InJuego
 	for (int i=0; i<this->_animacionesSecundarias.size(); i++) {
         this->_animacionesSecundarias.at(i)->draw(graphics);
     }

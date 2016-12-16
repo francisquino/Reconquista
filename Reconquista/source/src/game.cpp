@@ -47,6 +47,10 @@ sf::VertexArray mouseBox(sf::LinesStrip, 5);
 sf::Vector2i starting_position, current_position;
 sf::Vector2f startingPositionWorldPos, currentPositionWorldPos;
 
+
+//Borde vista Juegos sprites
+Sprite _borderViewJuegoSprite;
+
 Sprite destinoCruz;
 
 tipoCursor _tipoCursor = puntero;
@@ -75,6 +79,7 @@ void Game::gameLoop() {
     _level = Level("MapReconquista1", graphics);
 
     destinoCruz = Sprite(graphics, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 48, 672, 16, 16, 0, 0);
+	_borderViewJuegoSprite = Sprite(graphics, "content/sprites/BordeVistaJuego.png", 0, 0, 480, 480, 0, 0);
 
     //this->_player = Player(graphics, _level.getPlayerSpawnPoint());
     this->_info = InfoUser(graphics);
@@ -127,7 +132,7 @@ void Game::gameLoop() {
 						_tipoCursor = puntero;
 
 
-						graphics.getWindow().setView(*graphics.getView(Juego));
+						graphics.getWindow().setView(*graphics.getView(InJuego));
 						//Si el ratón está sobre un objeto de la vista Juego, cambiar el cursor por una lupa
 						if (input.cursorSobreObjeto((sf::Vector2i) graphics.getWindow().mapPixelToCoords(starting_position), &_level)) {
 							_tipoCursor = lupa;
@@ -160,7 +165,7 @@ void Game::gameLoop() {
             	//Cursor dentro de la vista Juego
             	//
             	if (input.dentroVistaJuego(starting_position)) {
-        			graphics.getWindow().setView(*graphics.getView(Juego));
+        			graphics.getWindow().setView(*graphics.getView(InJuego));
 
         			//Estado del juego _estInactivo o Recolectando: podemos seleccionar un Objeto
         			if (_estadoJuego == _estInactivo || _estadoJuego == _estRecolectando) {
@@ -515,18 +520,22 @@ void Game::draw(Graphics& graphics) {
     	this->_info.drawCaballero(graphics);
     }
 
-    _level.draw(graphics);
+    //Dibujar borde de la vista Juego
     graphics.getWindow().setView(*graphics.getView(Juego));
+    _borderViewJuegoSprite.draw(graphics, _borderViewJuegoSprite.getX(), _borderViewJuegoSprite.getY());
+
+    _level.draw(graphics);
+    graphics.getWindow().setView(*graphics.getView(InJuego));
     //this->_player.draw(graphics);
 
     //Si hay destino fijado, dibujarlo
     if (objetoSeleccionado && objetoSeleccionado->getDestinoX() && objetoSeleccionado->getDestinoY()) {
-        graphics.getWindow().setView(*graphics.getView(Juego));
+        graphics.getWindow().setView(*graphics.getView(InJuego));
     	destinoCruz.draw(graphics, destinoCruz.getX(), destinoCruz.getY());
     }
 
     //Dibujar caja click & drag raton
-    graphics.getWindow().setView(*graphics.getView(Juego));
+    graphics.getWindow().setView(*graphics.getView(InJuego));
     graphics.getWindow().draw(mouseBox);
 
 
@@ -537,8 +546,8 @@ void Game::draw(Graphics& graphics) {
     //	position = sf::Vector2f(objetoSeleccionado->getX(), objetoSeleccionado->getY());
 
     //Obtener el punto medio de _vistaJuego
-    float viewMitadX = graphics.getView(Juego)->getSize().x * 0.5;
-    float viewMitadY = graphics.getView(Juego)->getSize().y * 0.5;
+    float viewMitadX = graphics.getView(InJuego)->getSize().x * 0.5;
+    float viewMitadY = graphics.getView(InJuego)->getSize().y * 0.5;
     //Obtener tamaño del mapa
     int sizeMapaX = _level.getMapSize().x * _level.getTileSize().x * globals::SPRITE_SCALE;
     int sizeMapaY = _level.getMapSize().y * _level.getTileSize().y * globals::SPRITE_SCALE;
@@ -552,7 +561,7 @@ void Game::draw(Graphics& graphics) {
     //printf ("Posicion player %f, %f\n", this->_player.getX(), this->_player.getY());
     //printf ("Posicion %f, %f\n", position.x, position.y);
     //printf ("viewMitadX %f Extremo %f\n", viewMitadX, sizeMapaX);
-    graphics.getView(Juego)->setCenter(position.x, position.y);
+    graphics.getView(InJuego)->setCenter(position.x, position.y);
 
     graphics.getWindow().setView(*graphics.getView(Completa));
     switch (_tipoCursor) {
@@ -570,7 +579,7 @@ void Game::draw(Graphics& graphics) {
 
     _animaciones.draw(graphics);
 
-    graphics.getWindow().setView(*graphics.getView(Juego));
+    graphics.getWindow().setView(*graphics.getView(InJuego));
 
     graphics.flip();
 }
