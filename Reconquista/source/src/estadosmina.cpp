@@ -42,8 +42,8 @@ minaEstadoInactivo* minaEstadoInactivo::Instance() {
 
 void minaEstadoInactivo::entrar(Mina* pMina) {
 	//No se hace nada
-	std::cout << "\nObjeto tipo " << pMina->getTipo() << ": "
-	<< "En espera de orden";
+	//std::cout << "\nObjeto tipo " << pMina->getTipo() << ": "
+	//<< "En espera de orden";
 }
 
 void minaEstadoInactivo::ejecutar(Mina* pMina) {
@@ -52,8 +52,8 @@ void minaEstadoInactivo::ejecutar(Mina* pMina) {
 }
 
 void minaEstadoInactivo::salir(Mina* pMina) {
-	std::cout << "\nObjeto tipo " << pMina->getTipo() << ": "
-	<< "Deja de estar inactivo";
+	//std::cout << "\nObjeto tipo " << pMina->getTipo() << ": "
+	//<< "Deja de estar inactivo";
 }
 
 bool minaEstadoInactivo::OnMessage(Mina* pMina, const Telegrama& msg)

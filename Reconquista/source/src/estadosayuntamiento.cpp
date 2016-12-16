@@ -44,8 +44,8 @@ ayuntamientoEstadoInactivo* ayuntamientoEstadoInactivo::Instance() {
 
 void ayuntamientoEstadoInactivo::entrar(Ayuntamiento* pAyuntamiento) {
 	//No se hace nada
-	std::cout << "\nObjeto tipo " << pAyuntamiento->getTipo() << ": "
-	<< "En espera de orden";
+	//std::cout << "\nObjeto tipo " << pAyuntamiento->getTipo() << ": "
+	//<< "En espera de orden";
 }
 
 void ayuntamientoEstadoInactivo::ejecutar(Ayuntamiento* pAyuntamiento) {
@@ -54,8 +54,8 @@ void ayuntamientoEstadoInactivo::ejecutar(Ayuntamiento* pAyuntamiento) {
 }
 
 void ayuntamientoEstadoInactivo::salir(Ayuntamiento* pAyuntamiento) {
-	std::cout << "\nObjeto tipo " << pAyuntamiento->getTipo() << ": "
-	<< "Deja de estar inactivo";
+	//std::cout << "\nObjeto tipo " << pAyuntamiento->getTipo() << ": "
+	//<< "Deja de estar inactivo";
 }
 
 bool ayuntamientoEstadoInactivo::OnMessage(Ayuntamiento* pAyuntamiento, const Telegrama& msg)

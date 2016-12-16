@@ -39,6 +39,6 @@ void Animaciones::animationDone(std::string currentAnimation) {
 
 
 void Animaciones::setupAnimations() {
-    this->addAnimation(6, 0, 0, "mas100Puntos", 32, 8, sf::Vector2i(0,-10));
+    this->addAnimation(6, 0, 0, "mas100Puntos", 32, 16, sf::Vector2i(0,0));
 }
 

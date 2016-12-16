@@ -42,8 +42,8 @@ bosqueEstadoInactivo* bosqueEstadoInactivo::Instance() {
 
 void bosqueEstadoInactivo::entrar(Bosque* pBosque) {
 	//No se hace nada
-	std::cout << "\nObjeto tipo " << pBosque->getTipo() << ": "
-	<< "En espera de orden";
+	//std::cout << "\nObjeto tipo " << pBosque->getTipo() << ": "
+	//<< "En espera de orden";
 }
 
 void bosqueEstadoInactivo::ejecutar(Bosque* pBosque) {
@@ -52,8 +52,8 @@ void bosqueEstadoInactivo::ejecutar(Bosque* pBosque) {
 }
 
 void bosqueEstadoInactivo::salir(Bosque* pBosque) {
-	std::cout << "\nObjeto tipo " << pBosque->getTipo() << ": "
-	<< "Deja de estar inactivo";
+	//std::cout << "\nObjeto tipo " << pBosque->getTipo() << ": "
+	//<< "Deja de estar inactivo";
 }
 
 bool bosqueEstadoInactivo::OnMessage(Bosque* pBosque, const Telegrama& msg)

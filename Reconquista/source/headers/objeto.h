@@ -278,4 +278,24 @@ class Campesino : public Objeto {
 }; //class Campesino
 
 
+class Caballero : public Objeto {
+	public:
+		Caballero();
+		Caballero(Graphics &graphics, sf::Vector2i spawnPoint);
+		~Caballero(){delete this->_cabpMaquinaEstados;}
+
+		void update(int elapsedTime);
+		void draw(Graphics &graphics);
+		bool manejarMensaje(const Telegrama& msg);
+
+		void animationDone(std::string currentAnimation);
+		void setupAnimations();
+
+		maquinaEstados<Caballero>* GetFSM() const{ return this->_cabpMaquinaEstados; }
+	private:
+		//Instancia de la clase Maquina de Estados
+		maquinaEstados<Caballero>* _cabpMaquinaEstados; //Caballero puntero maquina de estados
+}; //class Caballero
+
+
 #endif /* OBJETO_H */

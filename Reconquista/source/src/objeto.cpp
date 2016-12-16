@@ -13,6 +13,7 @@
 #include "estadosmina.h"
 #include "estadosbosque.h"
 #include "estadoscampesino.h"
+#include "estadoscaballero.h"
 
 namespace object_constants {
     const float WALK_SPEED = 0.2f;
@@ -425,3 +426,60 @@ Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
 	 if (this->getCantidadMaterial(tipoMaterial::Madera) > 0) return tipoMaterial::Madera;
 	 else return tipoMaterial::Oro;
  }
+
+
+ //Clase Caballero
+ Caballero::Caballero() {}
+
+ Caballero::Caballero(Graphics&graphics, sf::Vector2i spawnPoint) :
+  	Objeto(graphics, tipoObjeto::Caballero, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 256, 16, 16, spawnPoint, 6, 100)
+ {
+ 	graphics.loadImage("content/sprites/Tile-set-Toen's Medieval Strategy.png");
+ 	this->setupAnimations();
+ 	this->playAnimation("IdleRight");
+
+ 	//Inicializar la maquina de estados
+ 	this->_cabpMaquinaEstados = new maquinaEstados<Caballero>(this);
+ 	this->_cabpMaquinaEstados->setEstadoActual(caballeroEstadoInactivo::Instance());
+ 	this->_cabpMaquinaEstados->setEstadoGlobal(caballeroEstadoGlobal::Instance());
+ }
+
+  void Caballero::update(int elapsedTime) {
+ 	Objeto::update(elapsedTime);
+
+ 	this->_cabpMaquinaEstados->update();
+  }
+
+  void Caballero::draw(Graphics &graphics) {
+     Objeto::draw(graphics);
+  }
+
+  bool Caballero::manejarMensaje(const Telegrama& msg)
+  {
+ 	 return _cabpMaquinaEstados->manejarMensaje(msg);
+  }
+
+  void Caballero::animationDone(std::string currentAnimation) {}
+
+  void Caballero::setupAnimations() {
+      this->addAnimation(1, 6, 16, "IdleRight", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "IdleLeft", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "IdleUp", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "IdleDown", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "RunRight", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "RunLeft", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "RunUp", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "RunDown", 16, 16, sf::Vector2i(0,0));
+      //this->addAnimation(1, 96, 192, "IdleLeft", 16, 16, sf::Vector2i(0,0));
+      /*this->addAnimation(3, 0, 0, "RunLeft", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(3, 0, 16, "RunRight", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 3, 0, "IdleLeftUp", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 3, 16, "IdleRightUp", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(3, 3, 0, "RunLeftUp", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(3, 3, 16, "RunRightUp", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 0, "LookDownLeft", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 6, 16, "LookDownRight", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 7, 0, "LookBackwardsLeft", 16, 16, sf::Vector2i(0,0));
+      this->addAnimation(1, 7, 16, "LookBackwardsRight", 16, 16, sf::Vector2i(0,0));*/
+  }
+

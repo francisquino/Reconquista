@@ -13,6 +13,7 @@
 enum tipoMensaje
 {
 	_msjIrA,
+	_msjParar,
 	_msjRecolectar,
 	_msjNoHayRecurso,
 	_msjDestinoFijado,
@@ -29,6 +30,8 @@ inline std::string msjToStr(int msg)
 	{
 		case _msjIrA:
 			return "IrA";
+		case _msjParar:
+			return "Parar";
 		case _msjRecolectar:
 			return "Recolectar";
 		case _msjNoHayRecurso:

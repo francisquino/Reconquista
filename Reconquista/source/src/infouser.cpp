@@ -19,9 +19,10 @@ InfoUser::InfoUser(Graphics &graphics) {
     this->_aytoOroNumber = Sprite(graphics, "Iconos.png", 0, 0, 0, 0, 0, 0);*/
     this->_aytoEntrenarCampesino = Sprite(graphics, "content/sprites/Iconos.png", 0, 0, 32, 32, 0, 164);
 
-    //Iconos Campesino
+    //Iconos Campesino y Caballero
     this->_campIrA = Sprite(graphics, "content/sprites/Iconos.png", 32, 32, 32, 32, 0, 164);
-    this->_campRecolectar = Sprite(graphics, "content/sprites/Iconos.png", 0, 32, 32, 32, 64+4, 164);
+    this->_campParar = Sprite(graphics, "content/sprites/Iconos.png", 64, 32, 32, 32, 64+4, 164);
+    this->_campRecolectar = Sprite(graphics, "content/sprites/Iconos.png", 0, 32, 32, 32, 128+8, 164);
 }
 
 void InfoUser::update(int elapsedTime) {
@@ -48,4 +49,11 @@ void InfoUser::drawCampesino(Graphics &graphics) {
 	graphics.getWindow().setView(*graphics.getView(Info));
     this->_campIrA.draw(graphics, this->_campIrA.getX(), this->_campIrA.getY());
     this->_campRecolectar.draw(graphics, this->_campRecolectar.getX(), this->_campRecolectar.getY());
+    this->_campParar.draw(graphics, this->_campParar.getX(), this->_campParar.getY());
+}
+
+void InfoUser::drawCaballero(Graphics &graphics) {
+	graphics.getWindow().setView(*graphics.getView(Info));
+    this->_campIrA.draw(graphics, this->_campIrA.getX(), this->_campIrA.getY());
+    this->_campParar.draw(graphics, this->_campParar.getX(), this->_campParar.getY());
 }

@@ -368,7 +368,52 @@ void Game::gameLoop() {
 													_msjRecolectar,		//the message
 													NULL);				//Informacion extra
             			} //Recolectar
+
+                		//Si pulsamos sobre la acción "Parar"
+            			else if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+								this->_info.getIconoCampParar()->getBoundingBox()))
+            			{
+            				//El estado del juego pasa a Inactivo
+            				_estadoJuego = _estInactivo;
+            				//Enviamos un mensaje al Campesino para que pare
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,	//time delay
+            										NULL,					//Objeto* sender
+													objetoSeleccionado,		//Objeto* recipient
+													_msjParar,			//the message
+													NULL);					//Informacion extra
+            			} //Parar
             		} //Campesino seleccionado
+					//
+            		//Caballero seleccionado:
+					//
+					else if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Caballero) {
+            			//Acción "Ir a"
+            			if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+								this->_info.getIconoCampIrA()->getBoundingBox())) {
+            				//El estado del juego pasa a Esperando Posicion
+            				_estadoJuego = _estEsperandoPosicion;
+            				//Enviamos un mensaje al Campesino para que entre en estado de Ir a un destino
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,	//time delay
+            										NULL,					//Objeto* sender
+													objetoSeleccionado,		//Objeto* recipient
+													_msjIrA,				//the message
+													NULL);  				//Informacion extra
+            			} //Ir a
+
+                		//Si pulsamos sobre la acción "Parar"
+            			else if (input.sobre((sf::Vector2i) graphics.getWindow().mapPixelToCoords(sf::Mouse::getPosition(graphics.getWindow())),
+								this->_info.getIconoCampParar()->getBoundingBox()))
+            			{
+            				//El estado del juego pasa a Inactivo
+            				_estadoJuego = _estInactivo;
+            				//Enviamos un mensaje al Campesino para que pare
+            				Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,	//time delay
+            										NULL,					//Objeto* sender
+													objetoSeleccionado,		//Objeto* recipient
+													_msjParar,			//the message
+													NULL);					//Informacion extra
+            			} //Parar
+            		} //Caballero seleccionado
             	} //Cursor dentro de vita Info
             } //Se pulsa el botón izquierdo
 
@@ -464,6 +509,10 @@ void Game::draw(Graphics& graphics) {
     //Si hemos seleccionado un campesino, dibujar su estado y las acciones en la vista Info
     else if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Campesino) {
     	this->_info.drawCampesino(graphics);
+    }
+    //Si hemos seleccionado un caballero, dibujar su estado y las acciones en la vista Info
+    else if (objetoSeleccionado!=NULL && objetoSeleccionado->getTipo()==tipoObjeto::Caballero) {
+    	this->_info.drawCaballero(graphics);
     }
 
     _level.draw(graphics);

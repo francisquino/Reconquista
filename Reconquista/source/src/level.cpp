@@ -421,6 +421,9 @@ void Level::loadMap(std::string mapName, Graphics &graphics) {
                         else if(ss.str() == "campesino") {
                             this->_ayuntamiento->_unidades.push_back(new Campesino(graphics, sf::Vector2i(x * globals::SPRITE_SCALE, y * globals::SPRITE_SCALE)));
                         }
+                        else if(ss.str() == "caballero") {
+                            this->_ayuntamiento->_unidades.push_back(new Caballero(graphics, sf::Vector2i(x * globals::SPRITE_SCALE, y * globals::SPRITE_SCALE)));
+                        }
 
                         pObject = pObject->NextSiblingElement("object");
                     }

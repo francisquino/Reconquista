@@ -27,6 +27,12 @@ class InfoUser {
 		void drawCampesino(Graphics &graphics);
 		Sprite* getIconoCampIrA() { return &this->_campIrA; };
 		Sprite* getIconoCampRecolectar() { return &this->_campRecolectar; };
+		Sprite* getIconoCampParar() { return &this->_campParar; };
+
+		//Dibujar iconos e informacion de Caballero
+		void drawCaballero(Graphics &graphics);
+		Sprite* getIconoCabIrA() { return &this->_campIrA; };
+		Sprite* getIconoCabParar() { return &this->_campParar; };
 
 	private:
 		//Health sprites
@@ -40,9 +46,10 @@ class InfoUser {
 		//Acciones Ayuntamiento
 		Sprite _aytoEntrenarCampesino;
 
-		//Acciones Campesino
+		//Acciones Campesino, Caballero
 		Sprite _campRecolectar;
 		Sprite _campIrA;
+		Sprite _campParar;
 };
 
 
