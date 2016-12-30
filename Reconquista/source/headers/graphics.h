@@ -20,7 +20,6 @@
 enum Vista {
 	Completa,
 	Juego,
-	InJuego,
 	Minimapa,
 	Info
 };
@@ -74,7 +73,6 @@ private:
 
     sf::View _vistaCompleta;
     sf::View _vistaJuego;	//Vista de la ventana Juego, con el marco incluido.
-    sf::View _vistaInJuego;	//Vista de la ventana Juego, dentro del marco: Incluida dentro de _vistaJuego.
     sf::View _vistaMinimapa;
     sf::View _vistaInfo;
 

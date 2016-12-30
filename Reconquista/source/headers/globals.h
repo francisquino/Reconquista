@@ -8,10 +8,10 @@ namespace globals {
     const float SPRITE_SCALE = 2.0f;
 
     //Coordenadas de vistas
-    const int vistaJuegoX1 = 161;
-    const int vistaJuegoX2 = 640;
-    const int vistaJuegoY1 = 0;
-    const int vistaJuegoY2 = 480;
+    const int vistaJuegoX1 = 161+16;
+    const int vistaJuegoX2 = 640-16;
+    const int vistaJuegoY1 = 0+16;
+    const int vistaJuegoY2 = 480-16;
 
     const int vistaMinimapaX1 = 0;
     const int vistaMinimapaX2 = 160;
