@@ -335,10 +335,10 @@ void Bosque::setupAnimations() {
 Campesino::Campesino() {}
 
 Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
- 	Objeto(graphics, tipoObjeto::Campesino, "content/sprites/Tile-set-Toen's Medieval Strategy.png", 96, 192, 16, 16, spawnPoint, 3, 100),
+ 	Objeto(graphics, tipoObjeto::Campesino, "content/sprites/Campesino.png", 0, 0, 16, 16, spawnPoint, 3, 60),
  	_recursoRecoleccion(NULL)
 {
-	graphics.loadImage("content/sprites/Tile-set-Toen's Medieval Strategy.png");
+	graphics.loadImage("content/sprites/Campesino.png");
 	this->setupAnimations();
 	this->playAnimation("IdleRight");
 	this->_cargaMaxima[tipoMaterial::Madera] = 100;
@@ -400,14 +400,14 @@ Campesino::Campesino(Graphics&graphics, sf::Vector2i spawnPoint) :
  void Campesino::animationDone(std::string currentAnimation) {}
 
  void Campesino::setupAnimations() {
-     this->addAnimation(1, 6, 12, "IdleRight", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "IdleLeft", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "IdleUp", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "IdleDown", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "RunRight", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "RunLeft", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "RunUp", 16, 16, sf::Vector2i(0,0));
-     this->addAnimation(1, 6, 12, "RunDown", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(1, 0, 1, "IdleRight", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(1, 1, 1, "IdleLeft", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(1, 0, 0, "IdleUp", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(1, 0, 0, "IdleDown", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(8, 0, 0, "RunRight", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(8, 0, 1, "RunLeft", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(1, 0, 0, "RunUp", 16, 16, sf::Vector2i(0,0));
+     this->addAnimation(8, 0, 2, "RunDown", 16, 16, sf::Vector2i(0,0));
      //this->addAnimation(1, 96, 192, "IdleLeft", 16, 16, sf::Vector2i(0,0));
      /*this->addAnimation(3, 0, 0, "RunLeft", 16, 16, sf::Vector2i(0,0));
      this->addAnimation(3, 0, 16, "RunRight", 16, 16, sf::Vector2i(0,0));
